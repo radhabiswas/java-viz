@@ -1,0 +1,5 @@
+{
+  "name": "JavaViz: Universal Code Visualizer",
+  "description": "Interactive visual learning tool for Java, featuring memory visualization, reference tracking, and step-by-step code execution.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+/* Manual day/night toggle: add/remove `dark` on <html> (see src/lib/theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Implicit-this teaching overlay (ImplicitThisJavaBlock + javaLineToTeachingHtml) */
+.java-teach-kw {
+  color: #0369a1;
+}
+.dark .java-teach-kw {
+  color: #569cd6;
+}
+.java-teach-receiver {
+  display: inline-block;
+  margin: 0 1px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(192, 38, 211, 0.14);
+  color: #86198f;
+  box-shadow: 0 0 0 1px rgba(192, 38, 211, 0.35);
+  font-weight: 600;
+}
+.dark .java-teach-receiver {
+  background: rgba(192, 38, 211, 0.22);
+  color: #f5d0fe;
+  box-shadow: 0 0 0 1px rgba(217, 70, 239, 0.45);
+}
+
+/* CodeViewer: Java class section ribbons + access glyphs (see javaClassLayout.ts) */
+.cv-section-ribbon[data-section-ribbon]::before {
+  content: attr(data-section-ribbon);
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgb(180 83 9);
+  margin-bottom: 4px;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px dashed rgb(100 116 139 / 0.45);
+}
+.dark .cv-section-ribbon[data-section-ribbon]::before {
+  color: rgb(251 191 36 / 0.92);
+}
+
+/*
+ * Access glyphs: centered in the gutter between line numbers and code (--cv-access-glyph-center from CodeViewer).
+ * translateX(-50%) keeps the mark in the margin; slight downward nudge matches monospace optical center.
+ */
+.cv-access-pub::after,
+.cv-access-priv::after,
+.cv-access-prot::after,
+.cv-access-pkg::after {
+  position: absolute;
+  left: var(--cv-access-glyph-center, calc(3em + 1.25em + 0.125em));
+  top: 50%;
+  transform: translate(-50%, calc(-50% + 0.09em));
+  box-sizing: border-box;
+  min-width: 1.35em;
+  height: 1.35em;
+  padding: 0 0.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Ribbon label sits above the code on section starts; align glyph with the code row */
+.cv-section-ribbon.cv-access-pub::after,
+.cv-section-ribbon.cv-access-priv::after,
+.cv-section-ribbon.cv-access-prot::after,
+.cv-section-ribbon.cv-access-pkg::after {
+  top: calc(2.2rem + 0.58lh);
+  transform: translate(-50%, calc(-50% + 0.06em));
+}
+
+.cv-access-pub::after {
+  content: '+';
+  color: rgb(52 211 153);
+}
+.cv-access-priv::after {
+  content: '−';
+  color: rgb(252 165 165);
+}
+.cv-access-prot::after {
+  content: '#';
+  color: rgb(252 211 77);
+}
+.cv-access-pkg::after {
+  content: '~';
+  color: rgb(203 213 225);
+}
+
+/*
+ * CodeViewer: gutter between line numbers and code.
+ * Tailwind preflight zeros padding/margin on all elements; react-syntax-highlighter also merges
+ * Prism token styles onto the linenumber span. Pin layout (and muted gutter color) here so
+ * numbers never read as part of the source (e.g. "1int").
+ */
+.cv-syntax-code :is(.react-syntax-highlighter-line-number, .linenumber),
+.cv-java-line-gutter {
+  display: inline-block !important;
+  min-width: 3em !important;
+  padding-right: 1.25em !important;
+  margin-right: var(--cv-line-num-margin-right, 0.25em) !important;
+  text-align: right !important;
+  box-sizing: border-box !important;
+  color: rgb(148 163 184) !important;
+  user-select: none !important;
+  font-style: normal !important;
+}
+.dark .cv-syntax-code :is(.react-syntax-highlighter-line-number, .linenumber),
+.dark .cv-java-line-gutter {
+  color: rgb(71 85 105) !important;
+}
+
+/*
+ * Custom Code (react-simple-code-editor): light mode uses default prism.css tokens.
+ * Dark mode: Tomorrow-like token colors scoped so the rest of the light UI is unaffected.
+ */
+.dark .javaviz-custom-editor pre,
+.dark .javaviz-custom-editor code {
+  color: #ccc !important;
+  text-shadow: none !important;
+  background: transparent !important;
+}
+.dark .javaviz-custom-editor .token.comment,
+.dark .javaviz-custom-editor .token.block-comment,
+.dark .javaviz-custom-editor .token.prolog,
+.dark .javaviz-custom-editor .token.doctype,
+.dark .javaviz-custom-editor .token.cdata {
+  color: #999 !important;
+}
+.dark .javaviz-custom-editor .token.punctuation {
+  color: #ccc !important;
+}
+.dark .javaviz-custom-editor .token.boolean,
+.dark .javaviz-custom-editor .token.number,
+.dark .javaviz-custom-editor .token.function {
+  color: #f08d49 !important;
+}
+.dark .javaviz-custom-editor .token.keyword,
+.dark .javaviz-custom-editor .token.builtin {
+  color: #cc99cd !important;
+}
+.dark .javaviz-custom-editor .token.string,
+.dark .javaviz-custom-editor .token.char,
+.dark .javaviz-custom-editor .token.attr-value {
+  color: #7ec699 !important;
+}
+.dark .javaviz-custom-editor .token.operator,
+.dark .javaviz-custom-editor .token.entity,
+.dark .javaviz-custom-editor .token.url {
+  color: #67cdcc !important;
+}
+.dark .javaviz-custom-editor .token.class-name {
+  color: #f8c555 !important;
+}
