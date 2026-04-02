@@ -9,23 +9,55 @@ const BACK = '#7c3aed';
 type Props = {
   /** Used for accessibility only. */
   methodName: string;
+  variant: 'numeric' | 'generic';
+  /**
+   * Full peak chain (factorial/sumTo n values, or 0..L-1 placeholders for generic) — unwind math + captions.
+   */
   nValues: number[];
-  activeArgs: Set<number>;
+  /** One label per frame on the stack right now (outer → inner). */
+  circleLabels: string[];
+  activeHighlightIndex: number | null;
   idPrefix: string;
-  stackDepth: number;
   forwardEdgeCount: number;
   returnEdgeCount: number;
   /** Violet return arcs + labels; null = no labeled unwind. */
   unwindStyle: RecursionUnwindStyle | null;
   showFinalReturn: boolean;
-  finalReturnValue: number | null;
+  finalReturnValue: number | string | null;
 };
 
+function truncateLabel(s: string, max: number): string {
+  if (s.length <= max) return s;
+  return `${s.slice(0, Math.max(0, max - 1))}…`;
+}
+
+/** Circle text: parameter(s) only — not `fact(5)` / `binSearch(…)` wrappers. */
+function circleInnerText(
+  variant: 'numeric' | 'generic',
+  nValues: number[],
+  circleLabels: string[],
+  i: number,
+): string {
+  if (variant === 'numeric') {
+    const n = nValues[i];
+    return n !== undefined && n !== null ? String(n) : '';
+  }
+  const label = circleLabels[i] ?? '';
+  const m = label.match(/^[A-Za-z_$][\w$]*\((.*)\)\s*$/);
+  if (m) {
+    const inner = m[1].trim();
+    return inner !== '' ? inner : label;
+  }
+  return label;
+}
+
 function forwardEdgeCaption(
+  variant: 'numeric' | 'generic',
   nValues: number[],
   edgeFromIndex: number,
   methodName: string,
 ): string {
+  if (variant === 'generic') return 'call';
   const L = nValues.length;
   const baseN = L > 0 ? nValues[L - 1] : null;
   const nextN = nValues[edgeFromIndex + 1];
@@ -74,10 +106,11 @@ function markerDefs(idPrefix: string) {
  */
 export default function RecursionFlowDiagram({
   methodName,
+  variant,
   nValues,
-  activeArgs,
+  circleLabels,
+  activeHighlightIndex,
   idPrefix,
-  stackDepth,
   forwardEdgeCount,
   returnEdgeCount,
   unwindStyle,
@@ -85,28 +118,26 @@ export default function RecursionFlowDiagram({
   finalReturnValue,
 }: Props) {
   const fullL = nValues.length;
-  const V = Math.max(0, stackDepth);
-  const visible = V > 0 ? nValues.slice(0, V) : [];
-
-  const r = 16;
+  const V = circleLabels.length;
+  const r = variant === 'generic' ? 20 : 16;
   const cx = 84;
-  /** Gap between circle edges ≈ vStep − 2r so teal shafts stay visible (not just arrowheads). */
-  const vStep = 52;
+  const vStep = variant === 'generic' ? 56 : 52;
   const leftCurve = 46;
-  const labelPadRight = 96;
+  const labelPadRight = variant === 'generic' ? 108 : 96;
 
   const topPad = showFinalReturn && finalReturnValue != null && V > 0 ? 40 : 12;
   const cy = (i: number) => topPad + r + i * vStep;
 
   const bottomPad = 44;
-  const bodyBottom =
-    V > 0 ? cy(V - 1) + r : topPad + 2 * r;
+  const bodyBottom = V > 0 ? cy(V - 1) + r : topPad + 2 * r;
   const h = bodyBottom + bottomPad;
   const w = leftCurve + cx + labelPadRight;
 
   const returnLabels = unwindStyle?.labels ?? [];
-  const combineOp = unwindStyle?.combineOp ?? '×';
-  const baseN = fullL > 0 ? nValues[fullL - 1] : null;
+  const unwindReturnsOnly = unwindStyle?.kind === 'returns';
+  const combineOp =
+    unwindStyle?.kind === 'sumTo' ? '+' : unwindStyle?.kind === 'factorial' ? '×' : '×';
+  const baseN = variant === 'numeric' && fullL > 0 ? nValues[fullL - 1] : null;
   const fwdMarker = `${idPrefix}-fwd-head`;
   const backMarker = `${idPrefix}-back-head`;
 
@@ -166,7 +197,7 @@ export default function RecursionFlowDiagram({
                 isActive ? 'fill-teal-800 dark:fill-teal-200' : 'fill-slate-500 dark:fill-slate-500',
               )}
             >
-              {forwardEdgeCaption(nValues, i, methodName)}
+              {forwardEdgeCaption(variant, nValues, i, methodName)}
             </text>
           );
         })}
@@ -205,7 +236,12 @@ export default function RecursionFlowDiagram({
 
             const prevN = nValues[iShallow];
             const opChar = combineOp === '+' ? '+' : '×';
-            const labelW = combineOp === '+' ? 92 : 80;
+            const captionText = unwindReturnsOnly
+              ? `ret = ${String(label)}`
+              : `${prevN} ${opChar} ret = ${label}`;
+            const labelW = unwindReturnsOnly
+              ? Math.min(130, Math.max(56, 10 + captionText.length * 5.5))
+              : combineOp === '+' ? 92 : 80;
             return (
               <g key={`ret-${b}`}>
                 <path
@@ -234,16 +270,18 @@ export default function RecursionFlowDiagram({
                   textAnchor="middle"
                   className="fill-violet-800 text-[8px] font-mono font-bold tabular-nums dark:fill-violet-200"
                 >
-                  {prevN} {opChar} ret = {label}
+                  {captionText}
                 </text>
               </g>
             );
           })}
 
-        {visible.map((n, i) => {
-          const active = activeArgs.has(n);
+        {circleLabels.map((label, i) => {
+          const active = activeHighlightIndex !== null && i === activeHighlightIndex;
+          const inner = circleInnerText(variant, nValues, circleLabels, i);
+          const short = truncateLabel(inner, variant === 'generic' ? 18 : 12);
           return (
-            <g key={`n-${i}-${n}`}>
+            <g key={`n-${i}-${label}`}>
               <circle
                 cx={cx}
                 cy={cy(i)}
@@ -264,13 +302,14 @@ export default function RecursionFlowDiagram({
               </circle>
               <text
                 x={cx}
-                y={cy(i) + 4}
+                y={cy(i) + (variant === 'generic' ? 3 : 4)}
                 textAnchor="middle"
-                className="fill-slate-900 text-[12px] font-mono font-bold tabular-nums dark:fill-slate-100"
+                className="fill-slate-900 font-mono font-bold tabular-nums dark:fill-slate-100"
+                style={{ fontSize: variant === 'generic' ? 8 : 12 }}
               >
-                {n}
+                {short}
               </text>
-              {baseN !== null && n === baseN ? (
+              {variant === 'numeric' && baseN !== null && nValues[i] === baseN ? (
                 <text
                   x={cx + r + 6}
                   y={cy(i) + 3}
@@ -312,13 +351,15 @@ export default function RecursionFlowDiagram({
               textAnchor="middle"
               className="fill-violet-900 text-[9px] font-mono font-bold tabular-nums dark:fill-violet-100"
             >
-              to caller: {finalReturnValue}
+              to caller: {String(finalReturnValue)}
             </text>
           </g>
         )}
 
         <text x={10} y={h - 6} className="fill-slate-500 text-[8px] font-medium dark:fill-slate-400">
-          Teal ↓ calls · violet ↑ returns (+ or × from base)
+          {variant === 'generic'
+            ? 'Teal ↓ nested calls · stack column shows full signatures'
+            : 'Teal ↓ calls · violet ↑ returns (+ or × from base)'}
         </text>
       </svg>
     </div>

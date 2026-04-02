@@ -45,7 +45,7 @@ export const HELP_SECTIONS: HelpSection[] = [
     title: 'Using the app',
     searchBlob: 'find search next prev editor class scopes format quiz account score points modify',
     paragraphs: [
-      '**Find** searches lessons and this help. **Next** / **Prev** move the current line and description. Multi-file lessons use editor tabs. Toolbar: **Class**, **Scopes** (use **All variables** or click a local to show one lane), **Format**, **Modify**. When several diagram panels are on, use **Tabs** vs **Tile** (vertical stack) next to **Show**.',
+      '**Find** searches lessons and this help. **Next** / **Prev** move the current line and description. Multi-file lessons use editor tabs. Toolbar: **Class**, **Scopes** (use **All variables** or click a local to show one lane), **Format**, **Modify**. Diagram panels default to **Tabs** (one panel at a time); switch to **Tile** for a vertical stack next to **Show**.',
       'Quizzes add **points**; an optional **Account** saves progress in this browser.',
     ],
   },
@@ -96,7 +96,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       'arraylist list string math integer double random substring equals indexof pow sqrt min max wrapper parseint parsedouble 2d array traversal java.util java.lang library collections',
     paragraphs: [
       'Intro courses often stress **java.lang** and **java.util**: **`ArrayList`**, **`String`**, **`Math`**, **`Integer`** / **`Double`**, the **`List`** interface, and **row-major 2D traversal** (`grid.length`, `grid[r].length`).',
-      'Under **More lessons → 6 · Libraries**, each topic is its **own short lesson** (ArrayList & List, String, Math & wrappers, 2D arrays) so explanations stay focused.',
+      'Under **More lessons → 7 · Libraries**, each topic is its **own short lesson** (ArrayList & List, String, Math & wrappers, 2D arrays) so explanations stay focused.',
     ],
     relatedLessons: [
       { id: '6-lib-arraylist', label: 'ArrayList & List' },

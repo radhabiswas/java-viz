@@ -1,6 +1,12 @@
 import React, { useMemo } from 'react';
 import { lessons } from '../data/lessons';
 import { CURRICULUM_TOPIC_GROUPS, topicFeaturedLessonIdSet } from '../data/helpGuide';
+import {
+  chapterHasQuizHub,
+  chapterQuizNavId,
+  isChapterFullyComplete,
+  isLessonFullyComplete,
+} from '../lib/lessonProgress';
 import { Lesson } from '../types';
 import { cn } from '../lib/utils';
 import {
@@ -8,11 +14,13 @@ import {
   BookMarked,
   BookOpen,
   Box,
+  Check,
   Code2,
   Cpu,
   Database,
   GitBranch,
   Layers,
+  ListChecks,
   Lock,
   LogIn,
   LogOut,
@@ -47,6 +55,8 @@ export default function Sidebar({
   onSelectLesson,
   score,
   customLessons = [],
+  completedQuizIds,
+  completedSectionQuizIds,
   sessionUser,
   onOpenAccount,
   onLogout,
@@ -60,6 +70,8 @@ export default function Sidebar({
   onSelectLesson: (id: string) => void;
   score: number;
   customLessons?: Lesson[];
+  completedQuizIds: Set<string>;
+  completedSectionQuizIds: Set<string>;
   sessionUser: string | null;
   onOpenAccount: () => void;
   onLogout: () => void;
@@ -295,30 +307,70 @@ export default function Sidebar({
                 <Icon size={14} />
                 {chapter}
               </div>
-              {chapterLessons.map((lesson) => (
+              {chapterLessons.map((lesson) => {
+                const lessonDone = isLessonFullyComplete(lesson, completedSectionQuizIds, completedQuizIds);
+                return (
+                  <button
+                    key={lesson.id}
+                    onClick={() => onSelectLesson(lesson.id)}
+                    className={cn(
+                      'group flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200',
+                      activeLessonId === lesson.id
+                        ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/20'
+                        : 'text-slate-600 hover:bg-slate-200/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200',
+                    )}
+                  >
+                    <span className="flex min-w-0 items-center gap-2 pr-4">
+                      {lessonDone ? (
+                        <Check
+                          size={16}
+                          className={cn(
+                            'shrink-0',
+                            activeLessonId === lesson.id ? 'text-white' : 'text-teal-600 dark:text-teal-400',
+                          )}
+                          aria-hidden
+                        />
+                      ) : null}
+                      <span className="truncate">{lessonSidebarLabel(lesson)}</span>
+                    </span>
+                    {activeLessonId === lesson.id && (
+                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white" />
+                    )}
+                  </button>
+                );
+              })}
+              {chapterHasQuizHub(chapterLessons) ? (
                 <button
-                  key={lesson.id}
-                  onClick={() => onSelectLesson(lesson.id)}
+                  type="button"
+                  onClick={() => onSelectLesson(chapterQuizNavId(chapter))}
                   className={cn(
-                    'group flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200',
-                    activeLessonId === lesson.id
-                      ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/20'
-                      : 'text-slate-600 hover:bg-slate-200/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200',
+                    'flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200',
+                    activeLessonId === chapterQuizNavId(chapter)
+                      ? 'bg-slate-700 text-white shadow-md dark:bg-slate-600'
+                      : 'border border-dashed border-slate-300 bg-white text-slate-700 hover:border-teal-400/60 hover:bg-teal-50/80 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:border-teal-500/40 dark:hover:bg-slate-800',
                   )}
                 >
-                  <span className="truncate pr-4">{lessonSidebarLabel(lesson)}</span>
-                  {activeLessonId === lesson.id && (
-                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                  )}
+                  <span className="flex items-center gap-2 truncate">
+                    {isChapterFullyComplete(chapterLessons, completedSectionQuizIds, completedQuizIds) ? (
+                      <Check size={16} className="shrink-0 text-teal-600 dark:text-teal-300" aria-hidden />
+                    ) : (
+                      <ListChecks size={16} className="shrink-0 opacity-80" aria-hidden />
+                    )}
+                    Quiz
+                  </span>
+                  {activeLessonId === chapterQuizNavId(chapter) ? (
+                    <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white" />
+                  ) : null}
                 </button>
-              ))}
+              ) : null}
             </div>
           );
         })}
       </div>
 
-      <div className="border-t border-slate-200 p-4 text-center text-xs text-slate-500 dark:border-slate-800">
-        Interactive Java Visualizer
+      <div className="border-t border-slate-200 p-4 text-center text-[10px] leading-relaxed text-slate-500 dark:border-slate-800 dark:text-slate-500">
+        <p className="font-medium text-slate-600 dark:text-slate-400">© Radha Biswas</p>
+        <p className="mt-0.5">All rights reserved · Neurosymphony.ai</p>
       </div>
     </div>
   );

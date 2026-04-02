@@ -9,9 +9,11 @@ import LessonViewer from './components/LessonViewer';
 import CustomCodeInput from './components/CustomCodeInput';
 import AccountModal from './components/AccountModal';
 import HelpGuide from './components/HelpGuide';
+import ChapterQuizHub from './components/ChapterQuizHub';
 import NavigationSearchModal from './components/NavigationSearchModal';
 import { lessons as defaultLessons } from './data/lessons';
 import { HELP_LESSON_ID } from './data/helpGuide';
+import { finalQuizzesByLessonId } from './data/finalQuizzes';
 import { buildDeterministicCustomLesson } from './lib/buildCustomLesson';
 import {
   getSessionUsername,
@@ -19,6 +21,7 @@ import {
   saveProgress,
   signOut,
 } from './lib/accountStorage';
+import { parseChapterQuizNavId } from './lib/lessonProgress';
 import { Lesson } from './types';
 import { applyThemeClass, getInitialTheme, persistThemeChoice, type Theme } from './lib/theme';
 
@@ -26,12 +29,20 @@ function lessonNavOrder(a: Lesson, b: Lesson) {
   return (a.order ?? 9999) - (b.order ?? 9999);
 }
 
-function readInitialSessionProgress(): { score: number; completed: Set<string> } {
+function readInitialSessionProgress(): {
+  score: number;
+  completed: Set<string>;
+  completedSections: Set<string>;
+} {
   const u = getSessionUsername();
-  if (!u) return { score: 0, completed: new Set() };
+  if (!u) return { score: 0, completed: new Set(), completedSections: new Set() };
   const p = loadProgress(u);
-  if (!p) return { score: 0, completed: new Set() };
-  return { score: p.score, completed: p.completedQuizIds };
+  if (!p) return { score: 0, completed: new Set(), completedSections: new Set() };
+  return {
+    score: p.score,
+    completed: p.completedQuizIds,
+    completedSections: p.completedSectionQuizIds,
+  };
 }
 
 export default function App() {
@@ -43,6 +54,9 @@ export default function App() {
   const [score, setScore] = useState(() => readInitialSessionProgress().score);
   const [completedQuizzes, setCompletedQuizzes] = useState<Set<string>>(
     () => new Set(readInitialSessionProgress().completed),
+  );
+  const [completedSectionQuizzes, setCompletedSectionQuizzes] = useState<Set<string>>(
+    () => new Set(readInitialSessionProgress().completedSections),
   );
   const [customLessons, setCustomLessons] = useState<Lesson[]>([]);
   const [initialCustomCode, setInitialCustomCode] = useState('');
@@ -66,20 +80,32 @@ export default function App() {
     if (!sessionUser) {
       setScore(0);
       setCompletedQuizzes(new Set());
+      setCompletedSectionQuizzes(new Set());
       return;
     }
     const p = loadProgress(sessionUser);
     if (p) {
       setScore(p.score);
       setCompletedQuizzes(new Set(p.completedQuizIds));
+      setCompletedSectionQuizzes(new Set(p.completedSectionQuizIds));
     }
   }, [sessionUser]);
 
   const allLessons = [...sortedDefaults, ...customLessons];
   const isHelpView = activeLessonId === HELP_LESSON_ID;
   const isCustomView = activeLessonId === 'custom';
+  const chapterQuizChapter = parseChapterQuizNavId(activeLessonId);
   const activeLesson = allLessons.find((l) => l.id === activeLessonId);
   const fallbackLessonId = sortedDefaults[0]?.id ?? 'custom';
+
+  const selectLesson = useCallback((id: string) => {
+    setActiveLessonId(id);
+  }, []);
+  const activeLessonEndQuizId =
+    activeLesson?.finalQuiz?.id ??
+    finalQuizzesByLessonId[activeLesson?.id ?? '']?.id ??
+    activeLesson?.quiz?.id ??
+    '';
 
   const handleQuizComplete = useCallback((quizId: string, points: number) => {
     setCompletedQuizzes((prevQ) => {
@@ -88,21 +114,42 @@ export default function App() {
       setScore((prevS) => {
         const nextS = prevS + points;
         const u = getSessionUsername();
-        if (u) saveProgress(u, nextS, Array.from(nextQ));
+        if (u) saveProgress(u, nextS, Array.from(nextQ), Array.from(completedSectionQuizzes));
         return nextS;
       });
       return nextQ;
     });
-  }, []);
+  }, [completedSectionQuizzes]);
+
+  const handleSectionQuizComplete = useCallback((sectionQuizId: string, points: number) => {
+    setCompletedSectionQuizzes((prevSet) => {
+      if (prevSet.has(sectionQuizId)) return prevSet;
+      const nextSet = new Set(prevSet).add(sectionQuizId);
+      setScore((prevScore) => {
+        const nextScore = prevScore + points;
+        const u = getSessionUsername();
+        if (u) {
+          saveProgress(
+            u,
+            nextScore,
+            Array.from(completedQuizzes),
+            Array.from(nextSet),
+          );
+        }
+        return nextScore;
+      });
+      return nextSet;
+    });
+  }, [completedQuizzes]);
 
   const handleLessonGenerated = (lesson: Lesson) => {
     setCustomLessons((prev) => [...prev, lesson]);
-    setActiveLessonId(lesson.id);
+    selectLesson(lesson.id);
   };
 
   const handleEditLesson = (code: string) => {
     setInitialCustomCode(code);
-    setActiveLessonId('custom');
+    selectLesson('custom');
   };
 
   const handleReplaceCustomLessonCode = (lessonId: string, newCode: string) => {
@@ -118,9 +165,10 @@ export default function App() {
   const handleDeleteCustomLesson = (lessonId: string) => {
     if (!window.confirm('Remove this visualization from your list?')) return;
     setCustomLessons((prev) => prev.filter((l) => l.id !== lessonId));
-    setActiveLessonId((current) =>
-      current === lessonId ? sortedDefaults[0]?.id ?? 'custom' : current,
-    );
+    setActiveLessonId((current) => {
+      if (current !== lessonId) return current;
+      return sortedDefaults[0]?.id ?? 'custom';
+    });
   };
 
   return (
@@ -134,7 +182,7 @@ export default function App() {
         open={navSearchOpen}
         onClose={() => setNavSearchOpen(false)}
         lessons={allLessons}
-        onSelectLesson={setActiveLessonId}
+        onSelectLesson={selectLesson}
         onSelectHelpSection={(sectionId) => {
           setActiveLessonId(HELP_LESSON_ID);
           setHelpScrollTarget(sectionId);
@@ -142,9 +190,11 @@ export default function App() {
       />
       <Sidebar
         activeLessonId={activeLessonId}
-        onSelectLesson={setActiveLessonId}
+        onSelectLesson={selectLesson}
         score={score}
         customLessons={customLessons}
+        completedQuizIds={completedQuizzes}
+        completedSectionQuizIds={completedSectionQuizzes}
         sessionUser={sessionUser}
         onOpenAccount={() => setAccountModalOpen(true)}
         onLogout={() => {
@@ -164,22 +214,40 @@ export default function App() {
           </div>
         ) : isHelpView ? (
           <HelpGuide
-            onBack={() => setActiveLessonId(fallbackLessonId)}
+            onBack={() => selectLesson(fallbackLessonId)}
             scrollToSectionId={helpScrollTarget}
             onScrollConsumed={() => setHelpScrollTarget(null)}
-            onOpenLesson={(id) => setActiveLessonId(id)}
+            onOpenLesson={(id) => selectLesson(id)}
+          />
+        ) : chapterQuizChapter ? (
+          <ChapterQuizHub
+            chapter={chapterQuizChapter}
+            lessons={sortedDefaults
+              .filter((l) => l.chapter === chapterQuizChapter)
+              .sort(lessonNavOrder)}
+            completedQuizIds={completedQuizzes}
+            completedSectionQuizIds={completedSectionQuizzes}
+            onBack={() =>
+              selectLesson(
+                sortedDefaults.find((l) => l.chapter === chapterQuizChapter)?.id ?? fallbackLessonId,
+              )
+            }
+            onOpenLesson={(id) => selectLesson(id)}
           />
         ) : activeLesson ? (
           <LessonViewer
             lesson={activeLesson}
             onQuizComplete={handleQuizComplete}
-            isQuizCompleted={completedQuizzes.has(activeLesson.quiz?.id || '')}
+            isQuizCompleted={completedQuizzes.has(activeLessonEndQuizId)}
+            completedSectionQuizIds={completedSectionQuizzes}
+            onSectionQuizComplete={handleSectionQuizComplete}
             onEditLesson={handleEditLesson}
             onReplaceCustomLessonCode={
               activeLesson.id.startsWith('custom-') && !activeLesson.files?.length
                 ? handleReplaceCustomLessonCode
                 : undefined
             }
+            onOpenChapterHub={selectLesson}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center bg-slate-100 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-500">

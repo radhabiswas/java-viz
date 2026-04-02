@@ -10,6 +10,7 @@ export type StoredAccount = {
   passwordHash: string;
   score: number;
   completedQuizIds: string[];
+  completedSectionQuizIds?: string[];
 };
 
 export function normalizeUsername(raw: string): string {
@@ -60,17 +61,25 @@ export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
 
-export function loadProgress(usernameNorm: string): { score: number; completedQuizIds: Set<string> } | null {
+export function loadProgress(
+  usernameNorm: string,
+): { score: number; completedQuizIds: Set<string>; completedSectionQuizIds: Set<string> } | null {
   const map = readStore();
   const acc = map[usernameNorm];
   if (!acc) return null;
   return {
     score: acc.score,
     completedQuizIds: new Set(acc.completedQuizIds),
+    completedSectionQuizIds: new Set(acc.completedSectionQuizIds ?? []),
   };
 }
 
-export function saveProgress(usernameNorm: string, score: number, completedQuizIds: string[]) {
+export function saveProgress(
+  usernameNorm: string,
+  score: number,
+  completedQuizIds: string[],
+  completedSectionQuizIds?: string[],
+) {
   const map = readStore();
   const acc = map[usernameNorm];
   if (!acc) return;
@@ -78,6 +87,7 @@ export function saveProgress(usernameNorm: string, score: number, completedQuizI
     ...acc,
     score,
     completedQuizIds,
+    ...(completedSectionQuizIds ? { completedSectionQuizIds } : {}),
   };
   writeStore(map);
 }
@@ -102,6 +112,7 @@ export async function signUp(usernameRaw: string, password: string): Promise<{ o
     passwordHash,
     score: 0,
     completedQuizIds: [],
+    completedSectionQuizIds: [],
   };
   writeStore(map);
   setSessionUsername(usernameNorm);

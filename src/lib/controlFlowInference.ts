@@ -1,4 +1,4 @@
-import type { Lesson, StackVariable } from '../types';
+import type { Lesson, StackVariable, Step } from '../types';
 
 export type ExecutionPathStep = {
   stepIndex: number;
@@ -65,6 +65,14 @@ export function isUniformMethodFrames(frames: ParsedCallFrame[]): boolean {
   return frames.every((f) => f.methodName === first);
 }
 
+/** Only single-integer-argument frames (e.g. fact(3)) — not binSearch(11,0,6). */
+function frameHasSingleIntArgumentOnly(f: ParsedCallFrame): boolean {
+  const m = f.signature.trim().match(FRAME_RE);
+  if (!m) return false;
+  if (m[2].includes(',')) return false;
+  return Number.isFinite(parseInt(m[2].trim(), 10));
+}
+
 export function numericArgsFromSignatures(frames: ParsedCallFrame[]): number[] | null {
   const nums = frames.map((f) => {
     const m = f.signature.trim().match(FRAME_RE);
@@ -89,15 +97,27 @@ export type UniformNumericRecursionTrace = {
   nValues: number[];
 };
 
+export type GenericRecursionTrace = {
+  traceKind: 'generic';
+  methodName: string;
+  /** Longest chain seen in the lesson (outer → inner). */
+  peakSignatures: string[];
+};
+
+export type LessonRecursionTrace =
+  | ({ traceKind: 'numeric' } & UniformNumericRecursionTrace)
+  | GenericRecursionTrace;
+
 /**
- * Longest uniform recursion chain with integer arguments (e.g. fact(3)…fact(0)) found in any step.
- * Lets the Flow panel show the full diagram even on intro steps with an empty stack.
+ * Longest uniform recursion chain with a single integer argument per frame (e.g. fact(3)…fact(0)).
+ * Multi-arg frames like binSearch(11,0,6) are excluded — use Step.recursionCallStack + generic trace.
  */
 export function inferMaxUniformNumericRecursionFromLesson(lesson: Lesson): UniformNumericRecursionTrace | null {
   let best: ParsedCallFrame[] | null = null;
   for (const step of lesson.steps) {
     const frames = parseCallFrames(step.memory.stack);
     if (frames.length < 2 || !isUniformRecursionChain(frames)) continue;
+    if (!frames.every(frameHasSingleIntArgumentOnly)) continue;
     const nums = numericArgsFromSignatures(frames);
     if (!nums) continue;
     if (best === null || frames.length > best.length) best = frames;
@@ -106,6 +126,43 @@ export function inferMaxUniformNumericRecursionFromLesson(lesson: Lesson): Unifo
   const nValues = numericArgsFromSignatures(best);
   if (!nValues) return null;
   return { methodName: best[0].methodName, nValues };
+}
+
+function inferGenericRecursionPeakFromLesson(lesson: Lesson): GenericRecursionTrace | null {
+  let best: string[] | null = null;
+
+  for (const step of lesson.steps) {
+    const ch = step.recursionCallStack;
+    if (ch && ch.length > 0 && (!best || ch.length > best.length)) {
+      best = ch;
+    }
+  }
+
+  for (const step of lesson.steps) {
+    const frames = parseCallFrames(step.memory.stack);
+    if (frames.length < 2 || !isUniformRecursionChain(frames)) continue;
+    if (frames.every(frameHasSingleIntArgumentOnly)) continue;
+    const sigs = frames.map((f) => f.signature);
+    if (!best || sigs.length > best.length) best = sigs;
+  }
+
+  if (!best?.length) return null;
+  const m = best[0].trim().match(FRAME_RE);
+  const methodName = m ? m[1] : 'call';
+  return { traceKind: 'generic', methodName, peakSignatures: best };
+}
+
+/** Numeric n, n−1,… chains or explicit / multi-arg uniform method stacks. */
+export function inferLessonRecursionTrace(lesson: Lesson): LessonRecursionTrace | null {
+  const numeric = inferMaxUniformNumericRecursionFromLesson(lesson);
+  if (numeric) {
+    return { traceKind: 'numeric', methodName: numeric.methodName, nValues: numeric.nValues };
+  }
+  return inferGenericRecursionPeakFromLesson(lesson);
+}
+
+export function lessonHasRecursionPanel(lesson: Lesson): boolean {
+  return inferLessonRecursionTrace(lesson) !== null;
 }
 
 /**
@@ -141,7 +198,9 @@ export function computeSumToUnwindLabels(nValues: number[]): number[] {
 
 export type RecursionUnwindStyle =
   | { kind: 'factorial'; labels: number[]; combineOp: '×' }
-  | { kind: 'sumTo'; labels: number[]; combineOp: '+' };
+  | { kind: 'sumTo'; labels: number[]; combineOp: '+' }
+  /** Per-return value on each violet arc (no combine expression). */
+  | { kind: 'returns'; labels: string[] };
 
 /** Factorial (base 0) or sumTo-like (base 1), each step n−1. */
 export function inferRecursionUnwindStyle(nValues: number[]): RecursionUnwindStyle | null {
@@ -160,6 +219,7 @@ export function inferRecursionUnwindStyle(nValues: number[]): RecursionUnwindSty
 
 export function traceFromCurrentFrames(frames: ParsedCallFrame[]): UniformNumericRecursionTrace | null {
   if (frames.length < 2 || !isUniformRecursionChain(frames)) return null;
+  if (!frames.every(frameHasSingleIntArgumentOnly)) return null;
   const nValues = numericArgsFromSignatures(frames);
   if (!nValues) return null;
   return { methodName: frames[0].methodName, nValues };
@@ -195,27 +255,35 @@ export type RecursionDiagramStepState = {
   forwardEdgeCount: number;
   returnEdgeCount: number;
   showFinalReturn: boolean;
-  finalReturnValue: number | null;
+  finalReturnValue: number | string | null;
 };
+
+export function getRecursionStackDepthForStep(step: Step | undefined, trace: LessonRecursionTrace): number {
+  if (!step) return 0;
+  if (trace.traceKind === 'generic') {
+    return step.recursionCallStack?.length ?? recursionFrameDepth(step.memory.stack, trace.methodName);
+  }
+  return recursionFrameDepth(step.memory.stack, trace.methodName);
+}
 
 export function buildRecursionDiagramState(
   lesson: Lesson,
   stepIndex: number,
-  trace: UniformNumericRecursionTrace,
+  trace: LessonRecursionTrace,
 ): RecursionDiagramStepState {
-  const method = trace.methodName;
-  const L = trace.nValues.length;
+  const L =
+    trace.traceKind === 'numeric' ? trace.nValues.length : trace.peakSignatures.length;
   let peakDepth = 0;
   let peakStepIdx = -1;
   lesson.steps.forEach((st, i) => {
-    const d = recursionFrameDepth(st.memory.stack, method);
+    const d = getRecursionStackDepthForStep(st, trace);
     if (d >= peakDepth) {
       peakDepth = d;
       peakStepIdx = i;
     }
   });
 
-  const stackDepth = recursionFrameDepth(lesson.steps[stepIndex]?.memory.stack ?? [], method);
+  const stackDepth = getRecursionStackDepthForStep(lesson.steps[stepIndex], trace);
   const forwardEdgeCount = Math.max(0, stackDepth - 1);
 
   /** Pops since peak (from memory). */
@@ -229,7 +297,13 @@ export function buildRecursionDiagramState(
     returnEdgeCount = Math.min(L - 1, popsSincePeak, unwindStepsElapsed);
   }
 
-  const finalVal = computeRecursiveChainFinalReturnValue(trace.nValues);
+  const numericFinal =
+    trace.traceKind === 'numeric' ? computeRecursiveChainFinalReturnValue(trace.nValues) : null;
+  const genericFinal =
+    trace.traceKind === 'generic' && lesson.recursionFinalReturnValue !== undefined
+      ? lesson.recursionFinalReturnValue
+      : null;
+  const finalVal = numericFinal ?? genericFinal;
   const showFinalReturn =
     finalVal !== null &&
     stackDepth === 1 &&

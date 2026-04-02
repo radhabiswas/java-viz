@@ -6,19 +6,29 @@ import ParameterPassingPanel from './ParameterPassingPanel';
 import FlowPanel from './FlowPanel';
 import RecursionPanel from './RecursionPanel';
 import ClassHierarchyPanel from './ClassHierarchyPanel';
+import ArrayTracePanel from './ArrayTracePanel';
+import SectionQuizPanel from './SectionQuizPanel';
 import { formatJavaCode } from '../lib/formatJava';
 import { simulateJavaMemoryUpTo } from '../lib/javaMemorySimulator';
 import { buildHierarchyRows } from '../lib/classHierarchy';
 import { cn } from '../lib/utils';
-import { getEffectiveParameterPassing } from '../lib/inferParameterPassing';
-import { inferMaxUniformNumericRecursionFromLesson } from '../lib/controlFlowInference';
+import { stepDescriptionToReactNodes } from '../lib/stepDescriptionRichText';
+import {
+  getEffectiveParameterPassing,
+  lessonHasParameterPassingOpportunity,
+} from '../lib/inferParameterPassing';
+import { inferLessonRecursionTrace, lessonHasRecursionPanel } from '../lib/controlFlowInference';
 import { getPrimaryLessonCode, lessonUsesControlConstructs } from '../lib/statementFlowInference';
+import { sectionQuizzesByLessonId } from '../data/sectionQuizzes';
+import { finalQuizzesByLessonId } from '../data/finalQuizzes';
+import { chapterQuizNavId } from '../lib/lessonProgress';
 import {
   ChevronLeft,
   ChevronRight,
   Info,
   LayoutGrid,
   LayoutPanelLeft,
+  LayoutTemplate,
   Rows2,
   RotateCcw,
   CheckCircle2,
@@ -33,29 +43,40 @@ export default function LessonViewer({
   lesson, 
   onQuizComplete, 
   isQuizCompleted,
+  completedSectionQuizIds,
+  onSectionQuizComplete,
   onEditLesson,
   onReplaceCustomLessonCode,
+  onOpenChapterHub,
 }: { 
   lesson: Lesson;
   onQuizComplete: (quizId: string, points: number) => void;
   isQuizCompleted: boolean;
+  completedSectionQuizIds: Set<string>;
+  onSectionQuizComplete: (sectionQuizId: string, points: number) => void;
   onEditLesson: (code: string) => void;
   /** When set, Format rebuilds this custom lesson in place instead of opening the Custom Code screen. */
   onReplaceCustomLessonCode?: (lessonId: string, newCode: string) => void;
+  /** Navigate to the chapter quiz hub (`ch-quiz:…`); used when a question sets `reviewChapter`. */
+  onOpenChapterHub?: (navId: string) => void;
 }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
+  const [activeSectionQuizId, setActiveSectionQuizId] = useState<string | null>(null);
+  const [quizExplainLines, setQuizExplainLines] = useState<number[] | null>(null);
+  const [quizExplainFile, setQuizExplainFile] = useState<string | null>(null);
   const [activeConcept, setActiveConcept] = useState<Concept | null>(null);
   const [formatError, setFormatError] = useState('');
   const [formatNotice, setFormatNotice] = useState('');
   const [panelVisibility, setPanelVisibility] = useState({
     memory: true,
-    parameters: true,
+    parameters: false,
     flow: true,
     recursion: true,
     hierarchy: true,
+    arrayView: false,
   });
   /** Tabs = one full-height panel at a time (windowed); Tile = stack panels top-to-bottom. */
   const [diagramPanelLayout, setDiagramPanelLayout] = useState<'tabs' | 'tile'>('tabs');
@@ -64,12 +85,21 @@ export default function LessonViewer({
   );
   /** Active tab in the code viewer (for single-file “Modify code” export). */
   const editorTabRef = useRef<string | null>(null);
+  const sectionQuizMenuRef = useRef<HTMLDetailsElement>(null);
 
-  const step = lesson.steps[currentStepIndex];
+  const boundedStepIndex =
+    lesson.steps.length === 0 ? 0 : Math.min(currentStepIndex, lesson.steps.length - 1);
+  const step = lesson.steps[boundedStepIndex] ?? lesson.steps[0];
+  if (!step) return null;
 
   const effectiveParameterPassing = useMemo(
     () => getEffectiveParameterPassing(lesson, step),
     [lesson, step],
+  );
+
+  const hasParameterLessonOpportunity = useMemo(
+    () => lessonHasParameterPassingOpportunity(lesson),
+    [lesson],
   );
 
   /**
@@ -83,7 +113,7 @@ export default function LessonViewer({
       return simulateJavaMemoryUpTo(lines, step.codeLine);
     }
     return step.memory;
-  }, [lesson.id, lesson.code, lesson.files, step.codeLine, currentStepIndex]);
+  }, [lesson.id, lesson.code, lesson.files, step?.codeLine, boundedStepIndex]);
 
   const hierarchyRows = useMemo(
     () => buildHierarchyRows(lesson.classHierarchy, lesson.files),
@@ -92,34 +122,79 @@ export default function LessonViewer({
   const hasClassHierarchy = hierarchyRows.length > 0;
 
   const primaryLessonCode = useMemo(() => getPrimaryLessonCode(lesson), [lesson]);
+  const sectionQuizzes = lesson.sectionQuizzes ?? sectionQuizzesByLessonId[lesson.id] ?? [];
+  const effectiveFinalQuiz = lesson.finalQuiz ?? finalQuizzesByLessonId[lesson.id];
+  const legacyEndQuiz = lesson.quiz && !effectiveFinalQuiz ? lesson.quiz : undefined;
+  const activeSectionQuiz = useMemo(
+    () => sectionQuizzes.find((q) => q.id === activeSectionQuizId) ?? null,
+    [sectionQuizzes, activeSectionQuizId],
+  );
+  const pendingSectionQuizzes = useMemo(
+    () => sectionQuizzes.filter((q) => !completedSectionQuizIds.has(q.id)),
+    [sectionQuizzes, completedSectionQuizIds],
+  );
   const hasFlowContext = useMemo(() => lessonUsesControlConstructs(primaryLessonCode), [primaryLessonCode]);
-  const hasRecursionContext = useMemo(
-    () => inferMaxUniformNumericRecursionFromLesson(lesson) !== null,
+  const hasRecursionContext = useMemo(() => lessonHasRecursionPanel(lesson), [lesson]);
+  const hasArrayTraceLesson = useMemo(
+    () => lesson.steps.some((s) => s.arrayTrace != null),
     [lesson],
   );
 
-  type DiagramPanelKey = 'memory' | 'hierarchy' | 'parameters' | 'flow' | 'recursion';
+  /** Avoid empty Array view on steps that omit arrayTrace; reuse the latest prior snapshot. */
+  const effectiveArrayTrace = useMemo(() => {
+    if (step.arrayTrace != null) return step.arrayTrace;
+    if (!hasArrayTraceLesson) return undefined;
+    for (let i = boundedStepIndex - 1; i >= 0; i--) {
+      const prev = lesson.steps[i]?.arrayTrace;
+      if (prev != null) return prev;
+    }
+    return undefined;
+  }, [step.arrayTrace, hasArrayTraceLesson, boundedStepIndex, lesson.steps]);
+
+  type DiagramPanelKey = 'memory' | 'hierarchy' | 'parameters' | 'flow' | 'recursion' | 'arrayView';
 
   const visibleDiagramPanels = useMemo((): DiagramPanelKey[] => {
     const keys: DiagramPanelKey[] = [];
     if (panelVisibility.memory) keys.push('memory');
+    if (panelVisibility.arrayView && hasArrayTraceLesson) keys.push('arrayView');
     if (panelVisibility.hierarchy && hasClassHierarchy) keys.push('hierarchy');
-    if (panelVisibility.parameters) keys.push('parameters');
+    if (panelVisibility.parameters && hasParameterLessonOpportunity) keys.push('parameters');
     if (panelVisibility.flow && hasFlowContext) keys.push('flow');
     if (panelVisibility.recursion && hasRecursionContext) keys.push('recursion');
     return keys;
   }, [
     panelVisibility.memory,
+    panelVisibility.arrayView,
     panelVisibility.hierarchy,
     panelVisibility.parameters,
+    hasParameterLessonOpportunity,
     panelVisibility.flow,
     panelVisibility.recursion,
+    hasArrayTraceLesson,
     hasClassHierarchy,
     hasFlowContext,
     hasRecursionContext,
   ]);
 
   const [diagramFocus, setDiagramFocus] = useState<DiagramPanelKey>('memory');
+  const quizExplainConcept = useMemo<Concept | null>(() => {
+    if (!quizExplainLines || quizExplainLines.length === 0) return null;
+    if (lesson.files?.length) {
+      const file = quizExplainFile ?? step.activeFile ?? lesson.files[0].name;
+      return {
+        id: 'section-quiz-explain',
+        name: 'Section quiz explanation',
+        description: 'Highlighted lines from section quiz explanation',
+        files: [{ name: file, lines: quizExplainLines }],
+      };
+    }
+    return {
+      id: 'section-quiz-explain',
+      name: 'Section quiz explanation',
+      description: 'Highlighted lines from section quiz explanation',
+      lines: quizExplainLines,
+    };
+  }, [quizExplainLines, quizExplainFile, lesson.files, step.activeFile]);
 
   useEffect(() => {
     if (visibleDiagramPanels.length === 0) return;
@@ -129,7 +204,7 @@ export default function LessonViewer({
   }, [visibleDiagramPanels, diagramFocus]);
 
   const tilePanelOrder = useMemo(() => {
-    const order: DiagramPanelKey[] = ['memory', 'parameters', 'flow', 'recursion', 'hierarchy'];
+    const order: DiagramPanelKey[] = ['memory', 'arrayView', 'parameters', 'flow', 'recursion', 'hierarchy'];
     return order.filter((k) => visibleDiagramPanels.includes(k));
   }, [visibleDiagramPanels]);
 
@@ -149,21 +224,27 @@ export default function LessonViewer({
         case 'parameters':
           return <ParameterPassingPanel data={effectiveParameterPassing} embedded />;
         case 'flow':
-          return <FlowPanel lesson={lesson} currentStepIndex={currentStepIndex} embedded />;
+          return <FlowPanel lesson={lesson} currentStepIndex={boundedStepIndex} embedded />;
         case 'recursion':
           return (
             <RecursionPanel
               lesson={lesson}
-              currentStepIndex={currentStepIndex}
+              currentStepIndex={boundedStepIndex}
               memoryState={memoryState}
               embedded
             />
+          );
+        case 'arrayView':
+          return (
+            <div className="flex min-h-0 h-full min-w-0 flex-col overflow-hidden">
+              <ArrayTracePanel trace={effectiveArrayTrace} />
+            </div>
           );
         default:
           return null;
       }
     },
-    [memoryState, lesson, effectiveParameterPassing, currentStepIndex],
+    [memoryState, lesson, effectiveParameterPassing, boundedStepIndex, effectiveArrayTrace],
   );
 
   const openEditorFile = useCallback((file: string, scrollLine?: number) => {
@@ -204,70 +285,90 @@ export default function LessonViewer({
     setShowQuiz(false);
     setSelectedAnswer(null);
     setIsAnswerCorrect(null);
+    setActiveSectionQuizId(null);
+    setQuizExplainLines(null);
+    setQuizExplainFile(null);
     setActiveConcept(null);
     setFileTabRequest(null);
     editorTabRef.current = null;
     setFormatError('');
     setFormatNotice('');
     const code = getPrimaryLessonCode(lesson);
+    const arr = lesson.steps.some((s) => s.arrayTrace != null);
+    const trace = inferLessonRecursionTrace(lesson);
     setPanelVisibility({
       memory: true,
-      parameters: true,
+      parameters: lessonHasParameterPassingOpportunity(lesson),
       hierarchy: true,
       flow: lessonUsesControlConstructs(code),
-      recursion: inferMaxUniformNumericRecursionFromLesson(lesson) !== null,
+      recursion: lessonHasRecursionPanel(lesson),
+      arrayView: arr,
     });
-    setDiagramFocus('memory');
+    setDiagramPanelLayout('tabs');
+    setDiagramFocus(
+      trace?.traceKind === 'generic' ? 'recursion' : arr ? 'arrayView' : 'memory',
+    );
   }, [lesson.id]);
 
   /** Same custom lesson after Format: rebuild steps; refresh flow/recursion panel relevance. */
   useEffect(() => {
     setCurrentStepIndex(0);
     const code = getPrimaryLessonCode(lesson);
+    const arr = lesson.steps.some((s) => s.arrayTrace != null);
     setPanelVisibility((p) => ({
       ...p,
       flow: lessonUsesControlConstructs(code),
-      recursion: inferMaxUniformNumericRecursionFromLesson(lesson) !== null,
+      recursion: lessonHasRecursionPanel(lesson),
+      arrayView: arr,
+      parameters: lessonHasParameterPassingOpportunity(lesson),
     }));
+    setDiagramPanelLayout('tabs');
   }, [lesson.code, lesson]);
 
   const handleNext = () => {
-    if (currentStepIndex < lesson.steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
-    } else if (lesson.quiz && !showQuiz) {
-      setShowQuiz(true);
+    if (boundedStepIndex < lesson.steps.length - 1) {
+      setQuizExplainLines(null);
+      setQuizExplainFile(null);
+      setCurrentStepIndex(boundedStepIndex + 1);
     }
   };
 
   const handlePrev = () => {
     if (showQuiz) {
       setShowQuiz(false);
-    } else if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
+    } else if (activeSectionQuizId) {
+      setActiveSectionQuizId(null);
+    } else if (boundedStepIndex > 0) {
+      setQuizExplainLines(null);
+      setQuizExplainFile(null);
+      setCurrentStepIndex(boundedStepIndex - 1);
     }
   };
 
   const handleReset = () => {
     setCurrentStepIndex(0);
     setShowQuiz(false);
+    setActiveSectionQuizId(null);
+    setQuizExplainLines(null);
+    setQuizExplainFile(null);
     setSelectedAnswer(null);
     setIsAnswerCorrect(null);
   };
 
   const handleAnswerSubmit = (index: number) => {
-    if (isQuizCompleted || isAnswerCorrect) return;
-    
+    if (!legacyEndQuiz || isQuizCompleted || isAnswerCorrect) return;
+
     setSelectedAnswer(index);
-    const correct = index === lesson.quiz?.correctAnswer;
+    const correct = index === legacyEndQuiz.correctAnswer;
     setIsAnswerCorrect(correct);
-    
-    if (correct && lesson.quiz) {
+
+    if (correct) {
       confetti({
         particleCount: 100,
         spread: 70,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
       });
-      onQuizComplete(lesson.quiz.id, lesson.quiz.points);
+      onQuizComplete(legacyEndQuiz.id, legacyEndQuiz.points);
     }
   };
 
@@ -279,7 +380,91 @@ export default function LessonViewer({
           <h2 className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-1">{lesson.chapter}</h2>
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{lesson.title}</h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
+          {sectionQuizzes.length > 0 && (
+            <details ref={sectionQuizMenuRef} className="relative group">
+              <summary className="cursor-pointer list-none rounded-lg border border-teal-300 bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 transition-colors hover:bg-teal-100 dark:border-teal-800 dark:bg-teal-900/35 dark:text-teal-200 dark:hover:bg-teal-900/50 [&::-webkit-details-marker]:hidden">
+                <span className="inline-flex items-center gap-1.5">
+                  Practice checks
+                  <span className="rounded-md bg-white/80 px-1.5 py-0.5 font-mono text-[10px] text-teal-900 dark:bg-teal-950/60 dark:text-teal-100">
+                    {pendingSectionQuizzes.length}/{sectionQuizzes.length} pending
+                  </span>
+                </span>
+              </summary>
+              <div className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-4rem))] rounded-xl border border-slate-200 bg-white py-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                <p className="border-b border-slate-100 px-3 pb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                  All section quizzes for this lesson
+                </p>
+                <ul className="max-h-64 overflow-y-auto py-1">
+                  {sectionQuizzes.map((sq) => {
+                    const done = completedSectionQuizIds.has(sq.id);
+                    return (
+                      <li
+                        key={sq.id}
+                        className="flex flex-col gap-1.5 border-b border-slate-50 px-3 py-2 last:border-b-0 dark:border-slate-800/80"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="min-w-0 text-xs font-semibold leading-snug text-slate-800 dark:text-slate-100">
+                            {done ? '✓ ' : ''}
+                            {sq.title}
+                          </span>
+                          <span
+                            className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                              done
+                                ? 'bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300'
+                                : 'bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'
+                            }`}
+                          >
+                            {done ? 'Done' : 'Pending'}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentStepIndex(
+                                Math.max(0, Math.min(sq.checkpointStepIndex, lesson.steps.length - 1)),
+                              );
+                              setQuizExplainLines(null);
+                              setQuizExplainFile(null);
+                              sectionQuizMenuRef.current?.removeAttribute('open');
+                            }}
+                            className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                          >
+                            Go to step {sq.checkpointStepIndex + 1}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveSectionQuizId(sq.id);
+                              sectionQuizMenuRef.current?.removeAttribute('open');
+                            }}
+                            className="rounded-md border border-teal-400/60 bg-teal-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-teal-500"
+                          >
+                            Open quiz
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </details>
+          )}
+          {effectiveFinalQuiz && (
+            <button
+              type="button"
+              onClick={() => setShowQuiz(true)}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${
+                isQuizCompleted
+                  ? 'border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                  : 'border-amber-400/70 bg-amber-50 text-amber-950 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-950/55'
+              }`}
+              title="Open end-of-lesson review (optional)"
+            >
+              Lesson review{isQuizCompleted ? ' ✓' : ''}
+            </button>
+          )}
           <button
             onClick={handleReset}
             className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400"
@@ -290,7 +475,60 @@ export default function LessonViewer({
         </div>
       </div>
 
-      {showQuiz && lesson.quiz ? (
+      {activeSectionQuiz && (
+        <SectionQuizPanel
+          lesson={lesson}
+          quiz={activeSectionQuiz}
+          variant="section"
+          checkpointStepIndex={activeSectionQuiz.checkpointStepIndex}
+          alreadyCompleted={completedSectionQuizIds.has(activeSectionQuiz.id)}
+          onBackToLesson={() => setActiveSectionQuizId(null)}
+          onJumpToStep={(stepIndex, lines) => {
+            setCurrentStepIndex(Math.max(0, Math.min(stepIndex, lesson.steps.length - 1)));
+            setQuizExplainLines(lines ?? null);
+            setQuizExplainFile(lesson.steps[stepIndex]?.activeFile ?? null);
+            setActiveSectionQuizId(null);
+          }}
+          onOpenChapterHub={
+            onOpenChapterHub ? (chapter) => onOpenChapterHub(chapterQuizNavId(chapter)) : undefined
+          }
+          onComplete={(quizId, pointsEarned) => {
+            onSectionQuizComplete(quizId, pointsEarned);
+            setActiveSectionQuizId(null);
+          }}
+        />
+      )}
+      {!activeSectionQuiz && showQuiz && effectiveFinalQuiz ? (
+        <motion.div
+          key={`${lesson.id}-final-quiz`}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex min-h-0 flex-1 flex-col items-stretch overflow-y-auto overscroll-contain"
+        >
+          <SectionQuizPanel
+            lesson={lesson}
+            quiz={effectiveFinalQuiz}
+            variant="final"
+            alreadyCompleted={isQuizCompleted}
+            onBackToLesson={() => setShowQuiz(false)}
+            onJumpToStep={(stepIndex, lines) => {
+              setCurrentStepIndex(Math.max(0, Math.min(stepIndex, lesson.steps.length - 1)));
+              setQuizExplainLines(lines ?? null);
+              setQuizExplainFile(lesson.steps[stepIndex]?.activeFile ?? null);
+              setShowQuiz(false);
+            }}
+            onOpenChapterHub={
+              onOpenChapterHub ? (chapter) => onOpenChapterHub(chapterQuizNavId(chapter)) : undefined
+            }
+            onComplete={(quizId, pointsEarned) => {
+              onQuizComplete(quizId, pointsEarned);
+              if (pointsEarned > 0) {
+                confetti({ particleCount: 90, spread: 68, origin: { y: 0.62 } });
+              }
+            }}
+          />
+        </motion.div>
+      ) : !activeSectionQuiz && showQuiz && legacyEndQuiz ? (
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -311,18 +549,18 @@ export default function LessonViewer({
                 </h2>
               </div>
               <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 dark:bg-amber-900/35 dark:text-amber-400">
-                {lesson.quiz.points} Points
+                {legacyEndQuiz.points} Points
               </span>
             </div>
 
             <p className="mb-5 text-sm font-medium leading-relaxed text-slate-700 dark:text-slate-300 sm:text-[15px]">
-              {lesson.quiz.question}
+              {legacyEndQuiz.question}
             </p>
 
             <div className="space-y-2.5">
-              {lesson.quiz.options.map((option, idx) => {
+              {legacyEndQuiz.options.map((option, idx) => {
                 const isSelected = selectedAnswer === idx;
-                const isCorrect = idx === lesson.quiz?.correctAnswer;
+                const isCorrect = idx === legacyEndQuiz.correctAnswer;
                 const showStatus = isSelected || (isAnswerCorrect !== null && isCorrect);
                 
                 let buttonClass =
@@ -378,14 +616,14 @@ export default function LessonViewer({
                     >
                       {isAnswerCorrect || isQuizCompleted ? 'Correct' : 'Not quite'}
                     </h3>
-                    <p className="whitespace-pre-wrap opacity-95">{lesson.quiz.explanation}</p>
+                    <p className="whitespace-pre-wrap opacity-95">{legacyEndQuiz.explanation}</p>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </motion.div>
-      ) : (
+      ) : !activeSectionQuiz ? (
         <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Editor column: step narrative + controls sit directly above code (not full viewport width) */}
           <div className="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden">
@@ -402,7 +640,7 @@ export default function LessonViewer({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium leading-relaxed text-slate-700 dark:text-slate-300 sm:text-[15px]">
-                    {step.description}
+                    {stepDescriptionToReactNodes(step.description)}
                   </p>
                   {step.fileLinks && step.fileLinks.length > 0 && lesson.files && (
                     <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
@@ -430,7 +668,7 @@ export default function LessonViewer({
                   <button
                     type="button"
                     onClick={handlePrev}
-                    disabled={currentStepIndex === 0}
+                    disabled={boundedStepIndex === 0}
                     className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-teal-900 transition-colors hover:bg-white/90 active:bg-white disabled:cursor-not-allowed disabled:opacity-35 dark:text-teal-100 dark:hover:bg-teal-900/80 dark:active:bg-teal-900"
                     title="Previous step"
                     aria-label="Previous step"
@@ -438,12 +676,12 @@ export default function LessonViewer({
                     <ChevronLeft size={28} strokeWidth={2.5} className="shrink-0" />
                   </button>
                   <span className="min-w-[3.75rem] px-2 text-center font-mono text-sm font-extrabold tabular-nums tracking-tight text-teal-950 dark:text-teal-50">
-                    {currentStepIndex + 1}/{lesson.steps.length}
+                    {boundedStepIndex + 1}/{lesson.steps.length}
                   </span>
                   <button
                     type="button"
                     onClick={handleNext}
-                    disabled={!lesson.quiz && currentStepIndex === lesson.steps.length - 1}
+                    disabled={boundedStepIndex === lesson.steps.length - 1}
                     className="flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-teal-600 text-white shadow-sm transition-colors hover:bg-teal-500 active:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
                     title="Next step"
                     aria-label="Next step"
@@ -502,7 +740,7 @@ export default function LessonViewer({
                 code={lesson.code}
                 files={lesson.files}
                 step={step}
-                activeConcept={activeConcept}
+                activeConcept={activeConcept ?? quizExplainConcept}
                 fileTabRequest={lesson.files?.length ? fileTabRequest : null}
                 codeNav={lesson.codeNav}
                 onSelectedFileChange={(name) => {
@@ -531,62 +769,69 @@ export default function LessonViewer({
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
-            <div
-              className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-              role="group"
-              aria-label="Diagram panels"
-            >
-              <LayoutPanelLeft className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Show
-              </span>
-              {(
-                [
-                  { key: 'memory' as const, label: 'Memory state' },
-                  { key: 'parameters' as const, label: 'Parameters' },
-                  { key: 'flow' as const, label: 'Flow' },
-                  { key: 'recursion' as const, label: 'Recursion' },
-                  { key: 'hierarchy' as const, label: 'Class hierarchy' },
-                ] as const
-              ).map(({ key, label }) => {
-                if (key === 'hierarchy' && !hasClassHierarchy) return null;
-                if (key === 'flow' && !hasFlowContext) return null;
-                if (key === 'recursion' && !hasRecursionContext) return null;
-                const on = panelVisibility[key];
-                const canEnableAsTab =
-                  key === 'memory' ||
-                  (key === 'hierarchy' && hasClassHierarchy) ||
-                  key === 'parameters' ||
-                  (key === 'flow' && hasFlowContext) ||
-                  (key === 'recursion' && hasRecursionContext);
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => {
-                      const willEnable = !on;
-                      setPanelVisibility((p) => ({ ...p, [key]: !p[key] }));
-                      if (willEnable && canEnableAsTab) setDiagramFocus(key);
-                    }}
-                    className={cn(
-                      'rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors',
-                      on
-                        ? 'border-teal-500/60 bg-teal-500/15 text-teal-800 dark:border-teal-400/50 dark:bg-teal-500/15 dark:text-teal-100'
-                        : 'border-slate-200 bg-slate-50 text-slate-500 opacity-60 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-500',
-                    )}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-              {visibleDiagramPanels.length >= 2 && (
-                <>
-                  <span
-                    className="hidden h-4 w-px shrink-0 bg-slate-200 sm:inline dark:bg-slate-700"
-                    aria-hidden
-                  />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <div className="flex flex-col gap-2">
+              <div
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                role="group"
+                aria-label="Diagram panels — show or hide"
+              >
+                <LayoutPanelLeft className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Show
+                </span>
+                {(
+                  [
+                    { key: 'memory' as const, label: 'Memory state' },
+                    { key: 'arrayView' as const, label: 'Array view' },
+                    { key: 'parameters' as const, label: 'Parameters' },
+                    { key: 'flow' as const, label: 'Flow' },
+                    { key: 'recursion' as const, label: 'Recursion' },
+                    { key: 'hierarchy' as const, label: 'Class hierarchy' },
+                  ] as const
+                ).map(({ key, label }) => {
+                  if (key === 'hierarchy' && !hasClassHierarchy) return null;
+                  if (key === 'arrayView' && !hasArrayTraceLesson) return null;
+                  if (key === 'flow' && !hasFlowContext) return null;
+                  if (key === 'recursion' && !hasRecursionContext) return null;
+                  if (key === 'parameters' && !hasParameterLessonOpportunity) return null;
+                  const on = panelVisibility[key];
+                  const canEnableAsTab =
+                    key === 'memory' ||
+                    (key === 'arrayView' && hasArrayTraceLesson) ||
+                    (key === 'hierarchy' && hasClassHierarchy) ||
+                    (key === 'parameters' && hasParameterLessonOpportunity) ||
+                    (key === 'flow' && hasFlowContext) ||
+                    (key === 'recursion' && hasRecursionContext);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => {
+                        const willEnable = !on;
+                        setPanelVisibility((p) => ({ ...p, [key]: !p[key] }));
+                        if (willEnable && canEnableAsTab) setDiagramFocus(key);
+                      }}
+                      className={cn(
+                        'rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors',
+                        on
+                          ? 'border-teal-500/60 bg-teal-500/15 text-teal-800 dark:border-teal-400/50 dark:bg-teal-500/15 dark:text-teal-100'
+                          : 'border-slate-200 bg-slate-50 text-slate-500 opacity-60 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-500',
+                      )}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              {visibleDiagramPanels.length >= 2 ? (
+                <div
+                  className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                  role="group"
+                  aria-label="Diagram layout"
+                >
+                  <LayoutTemplate className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Layout
                   </span>
                   <button
@@ -608,7 +853,7 @@ export default function LessonViewer({
                     type="button"
                     aria-pressed={diagramPanelLayout === 'tile'}
                     onClick={() => setDiagramPanelLayout('tile')}
-                    title="Stack Memory, Parameters, Flow, Recursion, and Hierarchy vertically"
+                    title="Stack panels vertically — Memory, Array view, Parameters, Flow, Recursion, Hierarchy"
                     className={cn(
                       'flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors',
                       diagramPanelLayout === 'tile'
@@ -619,8 +864,8 @@ export default function LessonViewer({
                     <Rows2 size={12} aria-hidden />
                     Tile
                   </button>
-                </>
-              )}
+                </div>
+              ) : null}
             </div>
 
             {visibleDiagramPanels.length === 0 ? (
@@ -655,13 +900,15 @@ export default function LessonViewer({
                     const tabLabel =
                       panelKey === 'memory'
                         ? 'Memory'
-                        : panelKey === 'hierarchy'
-                          ? 'Hierarchy'
-                          : panelKey === 'parameters'
-                            ? 'Parameters'
-                            : panelKey === 'flow'
-                              ? 'Flow'
-                              : 'Recursion';
+                        : panelKey === 'arrayView'
+                          ? 'Array'
+                          : panelKey === 'hierarchy'
+                            ? 'Hierarchy'
+                            : panelKey === 'parameters'
+                              ? 'Parameters'
+                              : panelKey === 'flow'
+                                ? 'Flow'
+                                : 'Recursion';
                     const selected = diagramFocus === panelKey;
                     return (
                       <button
@@ -696,7 +943,7 @@ export default function LessonViewer({
             )}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

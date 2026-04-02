@@ -35,8 +35,18 @@ export default function ParameterPassingPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         {data.mappings.length === 0 ? (
           <p className="text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-400">
-            No actual → formal rows for this step. Step into a method body that has parameters on the stack, or use a
-            lesson step with an explicit parameter diagram.
+            {data.implicitDefaultConstructor ? (
+              <>
+                This call uses a constructor with <strong>no explicit parameters</strong>. There is nothing to copy
+                from the call site into a parameter slot; the object is still allocated on the heap and the constructor
+                body runs (here, an empty implicit body unless the lesson adds one).
+              </>
+            ) : (
+              <>
+                No actual → formal rows for this step. Step into a method body that has parameters on the stack, or use a
+                lesson step with an explicit parameter diagram.
+              </>
+            )}
           </p>
         ) : null}
         <ul className="list-none space-y-2">

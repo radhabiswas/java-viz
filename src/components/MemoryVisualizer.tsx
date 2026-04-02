@@ -358,21 +358,23 @@ export default function MemoryVisualizer({ state }: { state: MemoryState }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.2 }}
-                className="relative z-20 flex w-full min-w-0 max-w-full items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 shadow-sm transition-colors hover:border-teal-400/80 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-teal-500/60"
+                className="relative z-20 flex w-full min-w-0 max-w-full items-start gap-2 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 shadow-sm transition-colors hover:border-teal-400/80 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-teal-500/60"
               >
                 <div
-                  className="min-w-0 max-w-[45%] shrink truncate font-mono text-xs font-semibold leading-snug text-slate-800 dark:text-slate-100 sm:max-w-[55%]"
+                  className="min-w-0 max-w-[42%] shrink truncate pt-0.5 font-mono text-xs font-semibold leading-snug text-slate-800 dark:text-slate-100 sm:max-w-[50%]"
                   title={variable.name || variable.id}
                 >
                   {variable.name || variable.id || '—'}
                 </div>
-                <div className="flex min-w-0 flex-1 items-center justify-end border-l border-slate-200/90 pl-2 dark:border-slate-600">
+                <div className="flex min-w-0 flex-1 items-start justify-end border-l border-slate-200/90 pl-2 dark:border-slate-600">
                   {variable.type === 'primitive' ? (
                     <span
-                      className="min-w-0 max-w-[min(100%,6.5rem)] truncate rounded-md bg-emerald-50 px-1.5 py-0.5 text-right font-mono text-xs font-bold tabular-nums leading-none text-emerald-800 dark:bg-emerald-900/45 dark:text-emerald-300"
+                      className="max-w-full text-right font-mono text-xs font-bold tabular-nums leading-snug text-emerald-800 break-words [overflow-wrap:anywhere] dark:text-emerald-300"
                       title={String(variable.value ?? '')}
                     >
-                      {variable.value?.toString()}
+                      <span className="inline-block rounded-md bg-emerald-50 px-1.5 py-0.5 dark:bg-emerald-900/45">
+                        {variable.value?.toString()}
+                      </span>
                     </span>
                   ) : (
                     <div className="flex justify-end pr-0.5">

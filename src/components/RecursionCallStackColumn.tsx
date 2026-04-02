@@ -6,19 +6,18 @@ import { cn } from '../lib/utils';
  * outer caller at the bottom — opposite of Memory’s array top-to-bottom order.
  */
 export default function RecursionCallStackColumn({
-  methodName,
-  nValues,
+  signatures,
   stackDepth,
   compact = false,
   className,
 }: {
-  methodName: string;
-  nValues: number[];
+  /** Outer caller first → innermost last (same order as recursion diagram & lesson data). */
+  signatures: string[];
   stackDepth: number;
   compact?: boolean;
   className?: string;
 }) {
-  const onStack = stackDepth > 0 ? nValues.slice(0, stackDepth) : [];
+  const onStack = stackDepth > 0 ? signatures.slice(0, stackDepth) : [];
   const displayStack = [...onStack].reverse();
 
   return (
@@ -54,16 +53,15 @@ export default function RecursionCallStackColumn({
           )}
           aria-label="Recursive call stack frames"
         >
-          {displayStack.map((n, i) => {
+          {displayStack.map((sig, i) => {
             const innermost = i === 0;
-            const sig = `${methodName}(${n})`;
             return (
               <li
-                key={`${stackDepth - 1 - i}-${n}`}
+                key={`${stackDepth - 1 - i}-${sig}`}
                 title={innermost ? 'Stack top / active frame' : undefined}
                 className={cn(
                   'rounded-md border font-mono font-semibold tabular-nums transition-colors',
-                  compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2.5 py-1.5 text-[11px]',
+                  compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2.5 py-1.5 text-[10px] leading-snug',
                   !innermost &&
                     'border-slate-300 bg-white text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100',
                   innermost &&

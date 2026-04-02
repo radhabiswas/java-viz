@@ -1,4 +1,5 @@
 import { Lesson } from '../types';
+import { lessonAdditions } from './lessons.additions';
 
 export const lessons: Lesson[] = [
   {
@@ -123,19 +124,6 @@ public class Fraction {
         },
       },
     ],
-    quiz: {
-      id: 'q1-1',
-      question: "What happens when you assign one reference variable to another (e.g., f2 = f1)?",
-      options: [
-        "A new object is created on the heap.",
-        "The variables point to the same object in memory.",
-        "The original object is deleted.",
-        "The variables point to different objects with the same values."
-      ],
-      correctAnswer: 1,
-      explanation: "Assigning a reference variable copies the memory address, not the object itself. Both variables now point to the exact same object on the heap.",
-      points: 100
-    },
     concepts: [
       {
         id: 'c1',
@@ -164,6 +152,13 @@ public class Fraction {
         description:
           'Assigning one reference to another copies the memory address, so both variables point to the exact same object.',
         files: [{ name: 'Main.java', lines: [6] }],
+      },
+      {
+        id: 'c1-1-this',
+        name: 'Implicit this',
+        description: 'Open for explicit `Fraction this` and `this.` on `numer` / `denom` (teaching overlay).',
+        files: [{ name: 'Fraction.java', lines: [8, 9, 10] }],
+        implicitThis: { file: 'Fraction.java', className: 'Fraction' },
       },
     ],
   },
@@ -285,13 +280,116 @@ public class Player {
         id: 's4',
         codeLine: 6,
         activeFile: 'Main.java',
-        description: 'p2.takeDamage(20): p1 and p2 share one object, so health drops for both.',
+        description:
+          'Call p2.takeDamage(20): the receiver and argument are copied into the method’s parameters (pass-by-value).',
+        parameterPassing: {
+          subtitle:
+            'Instance method: Main passes p2 as the hidden this target and 20 as amount.',
+          calleeSignature: 'void takeDamage(int amount)',
+          mappings: [
+            {
+              formalType: 'Player',
+              formalName: 'this',
+              actual: 'p2',
+              detail:
+                'Same as s1.study() style: the reference in p2 is copied so the callee’s this points at the shared Player object.',
+            },
+            {
+              formalType: 'int',
+              formalName: 'amount',
+              actual: '20',
+              detail: 'A copy of the literal 20 is stored in the int parameter amount.',
+            },
+          ],
+          footnote:
+            'Java is pass-by-value: p2’s reference is copied into this; 20 is copied into amount.',
+        },
         memory: {
           stack: [
             { id: 'maxHealth', name: 'maxHealth', type: 'primitive', value: 100 },
             { id: 'p1', name: 'p1', type: 'reference', refId: 'player1' },
             { id: 'p2', name: 'p2', type: 'reference', refId: 'player1' },
           ],
+          heap: [
+            {
+              id: 'player1',
+              className: 'Player',
+              fields: [
+                { name: 'name', value: '"Jett"' },
+                { name: 'health', value: 100 },
+              ],
+            },
+          ],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's5',
+        codeLine: 10,
+        activeFile: 'Player.java',
+        description:
+          'Inside takeDamage: parameter amount holds a copy of 20; this refers to the object p2 pointed at.',
+        parameterPassing: {
+          subtitle: 'Callee view: formals are locals initialized from the argument copies.',
+          calleeSignature: 'void takeDamage(int amount)',
+          mappings: [
+            {
+              formalType: 'Player',
+              formalName: 'this',
+              actual: 'p2',
+              detail: 'Still the same heap Player as in Main; both p1 and p2 reference it.',
+            },
+            {
+              formalType: 'int',
+              formalName: 'amount',
+              actual: '20',
+              detail: 'Changing amount would not change the literal in Main; it is its own local.',
+            },
+          ],
+          footnote: 'Stack diagram shows amount on the callee side; Main’s locals are omitted for clarity.',
+        },
+        memory: {
+          stack: [{ id: 'amount', name: 'amount', type: 'primitive', value: 20 }],
+          heap: [
+            {
+              id: 'player1',
+              className: 'Player',
+              fields: [
+                { name: 'name', value: '"Jett"' },
+                { name: 'health', value: 100 },
+              ],
+            },
+          ],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's6',
+        codeLine: 11,
+        activeFile: 'Player.java',
+        description:
+          'After this line runs, health on the shared object is 80 — visible through both p1 and p2 in Main.',
+        parameterPassing: {
+          subtitle: 'Same bindings while executing the method body.',
+          calleeSignature: 'void takeDamage(int amount)',
+          mappings: [
+            {
+              formalType: 'Player',
+              formalName: 'this',
+              actual: 'p2',
+              detail: 'Mutating this.health updates the one heap object p1 and p2 share.',
+            },
+            {
+              formalType: 'int',
+              formalName: 'amount',
+              actual: '20',
+              detail: 'Still 20 for this execution of takeDamage.',
+            },
+          ],
+          footnote: 'When the method returns, amount disappears; the object keeps the new health.',
+        },
+        memory: {
+          stack: [{ id: 'amount', name: 'amount', type: 'primitive', value: 20 }],
           heap: [
             {
               id: 'player1',
@@ -306,19 +404,6 @@ public class Player {
         },
       },
     ],
-    quiz: {
-      id: 'q1-2',
-      question: "After p2.takeDamage(20) executes, what is the health of the player referenced by p1?",
-      options: [
-        "100",
-        "80",
-        "0",
-        "It throws an error"
-      ],
-      correctAnswer: 1,
-      explanation: "Since p1 and p2 reference the exact same object in memory, modifying the object through p2 also affects what p1 sees. The health is 80.",
-      points: 100
-    },
     concepts: [
       {
         id: 'c1-2-1',
@@ -342,9 +427,32 @@ public class Player {
         id: 'c1-2-4',
         name: 'Mutator Method Call',
         description: 'A method call that changes an object’s internal state.',
-        files: [{ name: 'Main.java', lines: [6] }],
+        files: [
+          { name: 'Main.java', lines: [6] },
+          { name: 'Player.java', lines: [10, 11] },
+        ],
+      },
+      {
+        id: 'c1-2-5',
+        name: 'Implicit this',
+        description: 'Open for explicit `Player this` and `this.` on the constructor and `takeDamage` (teaching overlay).',
+        files: [{ name: 'Player.java', lines: [5, 6, 7, 10, 11, 12] }],
+        implicitThis: { file: 'Player.java', className: 'Player' },
       },
     ],
+    quiz: {
+      id: 'q1-2',
+      question: "After p2.takeDamage(20) executes, what is the health of the player referenced by p1?",
+      options: [
+        "100",
+        "80",
+        "0",
+        "It throws an error"
+      ],
+      correctAnswer: 1,
+      explanation: "Since p1 and p2 reference the exact same object in memory, modifying the object through p2 also affects what p1 sees. The health is 80.",
+      points: 100
+    },
   },
   {
     id: '1-3',
@@ -361,6 +469,7 @@ public class Main {
   public static void main(String[] args) {
     Song track1 = new Song("Blinding Lights", "The Weeknd");
     Song track2 = new Song("Starboy", "The Weeknd");
+    String banner = track1.label();
     Song currentlyPlaying = track1;
     currentlyPlaying = track2;
   }
@@ -377,17 +486,26 @@ public class Main {
     this.title = title;
     this.artist = artist;
   }
+
+  /** Display line for UIs / sharing — does not change the song’s fields. */
+  public String label() {
+    return title + " — " + artist;
+  }
 }
 `,
       },
     ],
-    codeNav: [{ symbol: 'Song', file: 'Song.java', line: 0 }],
+    codeNav: [
+      { symbol: 'Song', file: 'Song.java', line: 0 },
+      { symbol: 'label', file: 'Song.java', line: 10 },
+    ],
     steps: [
       {
         id: 's0',
         codeLine: -1,
         activeFile: 'Main.java',
-        description: 'Reassigning references. Song.java on the other tab.',
+        description:
+          'Instance method for display vs reference reassignment: `label()` builds text from the object’s fields; `currentlyPlaying` is just another variable pointing at a song.',
         fileLinks: [
           { file: 'Main.java', label: 'Main.java (client)' },
           { file: 'Song.java', label: 'Song.java (class)' },
@@ -435,38 +553,98 @@ public class Main {
         id: 's3',
         codeLine: 5,
         activeFile: 'Main.java',
-        description: "currentlyPlaying is assigned track1. It now points to the first song.",
+        description:
+          "`track1.label()` runs on the song object: `this` is that object. The returned `String` is stored in `banner` (a new reference). The Song on the heap is unchanged.",
         memory: {
           stack: [
             { id: 'track1', name: 'track1', type: 'reference', refId: 'song1' },
             { id: 'track2', name: 'track2', type: 'reference', refId: 'song2' },
-            { id: 'currentlyPlaying', name: 'currentlyPlaying', type: 'reference', refId: 'song1' }
+            { id: 'banner', name: 'banner', type: 'reference', refId: 'strBanner' },
           ],
           heap: [
-            { id: 'song1', className: 'Song', fields: [{ name: 'title', value: '"Blinding Lights"' }, { name: 'artist', value: '"The Weeknd"' }] },
-            { id: 'song2', className: 'Song', fields: [{ name: 'title', value: '"Starboy"' }, { name: 'artist', value: '"The Weeknd"' }] }
+            {
+              id: 'song1',
+              className: 'Song',
+              fields: [
+                { name: 'title', value: '"Blinding Lights"' },
+                { name: 'artist', value: '"The Weeknd"' },
+              ],
+            },
+            {
+              id: 'song2',
+              className: 'Song',
+              fields: [
+                { name: 'title', value: '"Starboy"' },
+                { name: 'artist', value: '"The Weeknd"' },
+              ],
+            },
+            {
+              id: 'strBanner',
+              className: 'String',
+              fields: [{ name: 'value', value: '"Blinding Lights — The Weeknd"' }],
+            },
           ],
-          staticArea: []
-        }
+          staticArea: [],
+        },
       },
       {
         id: 's4',
         codeLine: 6,
         activeFile: 'Main.java',
-        description: 'currentlyPlaying → track2; track1 still holds the first song.',
+        description: "currentlyPlaying is assigned track1. It now points to the first song.",
         memory: {
           stack: [
             { id: 'track1', name: 'track1', type: 'reference', refId: 'song1' },
             { id: 'track2', name: 'track2', type: 'reference', refId: 'song2' },
-            { id: 'currentlyPlaying', name: 'currentlyPlaying', type: 'reference', refId: 'song2' }
+            { id: 'banner', name: 'banner', type: 'reference', refId: 'strBanner' },
+            { id: 'currentlyPlaying', name: 'currentlyPlaying', type: 'reference', refId: 'song1' },
           ],
           heap: [
             { id: 'song1', className: 'Song', fields: [{ name: 'title', value: '"Blinding Lights"' }, { name: 'artist', value: '"The Weeknd"' }] },
-            { id: 'song2', className: 'Song', fields: [{ name: 'title', value: '"Starboy"' }, { name: 'artist', value: '"The Weeknd"' }] }
+            { id: 'song2', className: 'Song', fields: [{ name: 'title', value: '"Starboy"' }, { name: 'artist', value: '"The Weeknd"' }] },
+            {
+              id: 'strBanner',
+              className: 'String',
+              fields: [{ name: 'value', value: '"Blinding Lights — The Weeknd"' }],
+            },
           ],
-          staticArea: []
-        }
-      }
+          staticArea: [],
+        },
+      },
+      {
+        id: 's5',
+        codeLine: 7,
+        activeFile: 'Main.java',
+        description:
+          'currentlyPlaying → track2; track1 and banner still reference the first song and its label text — only the playlist pointer moved.',
+        memory: {
+          stack: [
+            { id: 'track1', name: 'track1', type: 'reference', refId: 'song1' },
+            { id: 'track2', name: 'track2', type: 'reference', refId: 'song2' },
+            { id: 'banner', name: 'banner', type: 'reference', refId: 'strBanner' },
+            { id: 'currentlyPlaying', name: 'currentlyPlaying', type: 'reference', refId: 'song2' },
+          ],
+          heap: [
+            { id: 'song1', className: 'Song', fields: [{ name: 'title', value: '"Blinding Lights"' }, { name: 'artist', value: '"The Weeknd"' }] },
+            { id: 'song2', className: 'Song', fields: [{ name: 'title', value: '"Starboy"' }, { name: 'artist', value: '"The Weeknd"' }] },
+            {
+              id: 'strBanner',
+              className: 'String',
+              fields: [{ name: 'value', value: '"Blinding Lights — The Weeknd"' }],
+            },
+          ],
+          staticArea: [],
+        },
+      },
+    ],
+    concepts: [
+      {
+        id: 'c1-3-this',
+        name: 'Implicit this',
+        description: 'Open for explicit `Song this` and `this.` in the constructor and `label()` (teaching overlay).',
+        files: [{ name: 'Song.java', lines: [4, 5, 6, 10, 11] }],
+        implicitThis: { file: 'Song.java', className: 'Song' },
+      },
     ],
     quiz: {
       id: 'q1-3',
@@ -480,7 +658,7 @@ public class Main {
       correctAnswer: 2,
       explanation: "Objects in Java are only deleted (garbage collected) when NO references point to them. Since 'track1' still points to 'Blinding Lights', it stays in memory.",
       points: 100
-    }
+    },
   },
   {
     id: '1-4',
@@ -498,6 +676,7 @@ public class Main {
     SocialPost post1 = new SocialPost("Just had a great lunch!");
     SocialPost post2 = null;
     post2 = post1;
+    post2.addLike();
     post1 = null;
   }
 }
@@ -513,17 +692,26 @@ public class Main {
     this.content = content;
     this.likes = 0;
   }
+
+  /** Alters state on whichever reference you use to call it. */
+  public void addLike() {
+    likes++;
+  }
 }
 `,
       },
     ],
-    codeNav: [{ symbol: 'SocialPost', file: 'SocialPost.java', line: 0 }],
+    codeNav: [
+      { symbol: 'SocialPost', file: 'SocialPost.java', line: 0 },
+      { symbol: 'addLike', file: 'SocialPost.java', line: 10 },
+    ],
     steps: [
       {
         id: 's0',
         codeLine: -1,
         activeFile: 'Main.java',
-        description: 'null references. SocialPost.java on the other tab.',
+        description:
+          'null vs aliases vs mutators: `post2` can be null, then alias `post1`, then call `addLike()` on that alias — the shared object on the heap updates.',
         fileLinks: [
           { file: 'Main.java', label: 'Main.java (client)' },
           { file: 'SocialPost.java', label: 'SocialPost.java (class)' },
@@ -582,7 +770,32 @@ public class Main {
         id: 's4',
         codeLine: 6,
         activeFile: 'Main.java',
-        description: 'post1 = null; object survives while post2 still points to it.',
+        description:
+          "`post2.addLike()` — same object as `post1` pointed to: `likes` becomes 1. If you only cleared `post2` you'd still see the effect through any other reference.",
+        memory: {
+          stack: [
+            { id: 'post1', name: 'post1', type: 'reference', refId: 'postObj1' },
+            { id: 'post2', name: 'post2', type: 'reference', refId: 'postObj1' },
+          ],
+          heap: [
+            {
+              id: 'postObj1',
+              className: 'SocialPost',
+              fields: [
+                { name: 'content', value: '"Just had a great lunch!"' },
+                { name: 'likes', value: 1 },
+              ],
+            },
+          ],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's5',
+        codeLine: 7,
+        activeFile: 'Main.java',
+        description:
+          'post1 = null; the object still has `likes == 1` and post2 still points to it — only the post1 variable is empty.',
         memory: {
           stack: [
             { id: 'post1', name: 'post1', type: 'reference', refId: null },
@@ -594,12 +807,21 @@ public class Main {
               className: 'SocialPost',
               fields: [
                 { name: 'content', value: '"Just had a great lunch!"' },
-                { name: 'likes', value: 0 },
+                { name: 'likes', value: 1 },
               ],
             },
           ],
           staticArea: [],
         },
+      },
+    ],
+    concepts: [
+      {
+        id: 'c1-4-this',
+        name: 'Implicit this',
+        description: 'Open for explicit `SocialPost this` and `this.` in the constructor and `addLike()` (teaching overlay).',
+        files: [{ name: 'SocialPost.java', lines: [4, 5, 6, 10, 11] }],
+        implicitThis: { file: 'SocialPost.java', className: 'SocialPost' },
       },
     ],
     quiz: {
@@ -614,7 +836,7 @@ public class Main {
       correctAnswer: 1,
       explanation: "When an object has zero references pointing to it, Java's Garbage Collector automatically removes it from the heap to free up memory.",
       points: 150
-    }
+    },
   },
   {
     id: '1-5',
@@ -631,6 +853,8 @@ public class Main {
   public static void main(String[] args) {
     Sneaker pair1 = new Sneaker("Nike Air Max", 120);
     Sneaker pair2 = new Sneaker("Adidas Ultraboost", 180);
+    int tag = pair1.getPrice();
+    boolean luxe = pair2.isLuxury();
     pair1 = pair2;
   }
 }
@@ -646,17 +870,30 @@ public class Main {
     this.brand = brand;
     this.price = price;
   }
+
+  public int getPrice() {
+    return price;
+  }
+
+  public boolean isLuxury() {
+    return price >= 150;
+  }
 }
 `,
       },
     ],
-    codeNav: [{ symbol: 'Sneaker', file: 'Sneaker.java', line: 0 }],
+    codeNav: [
+      { symbol: 'Sneaker', file: 'Sneaker.java', line: 0 },
+      { symbol: 'getPrice', file: 'Sneaker.java', line: 9 },
+      { symbol: 'isLuxury', file: 'Sneaker.java', line: 13 },
+    ],
     steps: [
       {
         id: 's0',
         codeLine: -1,
         activeFile: 'Main.java',
-        description: 'Last reference gone → GC. Sneaker.java on the other tab.',
+        description:
+          'Queries before reassignment: `getPrice()` reads an `int`; `isLuxury()` returns a `boolean` from the same object’s state. Then `pair1` is reassigned and the Nike shoe can be collected.',
         fileLinks: [
           { file: 'Main.java', label: 'Main.java (client)' },
           { file: 'Sneaker.java', label: 'Sneaker.java (class)' },
@@ -710,19 +947,98 @@ public class Main {
         codeLine: 5,
         activeFile: 'Main.java',
         description:
-          "pair1 is reassigned to point to pair2's object. The Nike object now has NO references pointing to it! It is 'garbage' and will be cleaned up by Java.",
+          "`tag` stores the primitive returned from `pair1.getPrice()` (120). Primitives are copied by value — later changes to references don't rewrite `tag`.",
+        memory: {
+          stack: [
+            { id: 'pair1', name: 'pair1', type: 'reference', refId: 'shoe1' },
+            { id: 'pair2', name: 'pair2', type: 'reference', refId: 'shoe2' },
+            { id: 'tag', name: 'tag', type: 'primitive', value: 120 },
+          ],
+          heap: [
+            {
+              id: 'shoe1',
+              className: 'Sneaker',
+              fields: [
+                { name: 'brand', value: '"Nike Air Max"' },
+                { name: 'price', value: 120 },
+              ],
+            },
+            {
+              id: 'shoe2',
+              className: 'Sneaker',
+              fields: [
+                { name: 'brand', value: '"Adidas Ultraboost"' },
+                { name: 'price', value: 180 },
+              ],
+            },
+          ],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's4',
+        codeLine: 6,
+        activeFile: 'Main.java',
+        description:
+          '`pair2.isLuxury()` is true because 180 ≥ 150. The `boolean` `luxe` is another independent copy on the stack.',
+        memory: {
+          stack: [
+            { id: 'pair1', name: 'pair1', type: 'reference', refId: 'shoe1' },
+            { id: 'pair2', name: 'pair2', type: 'reference', refId: 'shoe2' },
+            { id: 'tag', name: 'tag', type: 'primitive', value: 120 },
+            { id: 'luxe', name: 'luxe', type: 'primitive', value: true },
+          ],
+          heap: [
+            {
+              id: 'shoe1',
+              className: 'Sneaker',
+              fields: [
+                { name: 'brand', value: '"Nike Air Max"' },
+                { name: 'price', value: 120 },
+              ],
+            },
+            {
+              id: 'shoe2',
+              className: 'Sneaker',
+              fields: [
+                { name: 'brand', value: '"Adidas Ultraboost"' },
+                { name: 'price', value: 180 },
+              ],
+            },
+          ],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's5',
+        codeLine: 7,
+        activeFile: 'Main.java',
+        description:
+          "pair1 is reassigned to pair2's object. The Nike object now has NO references pointing to it! It is 'garbage' and will be cleaned up by Java. `tag` and `luxe` are unchanged.",
         memory: {
           stack: [
             { id: 'pair1', name: 'pair1', type: 'reference', refId: 'shoe2' },
-            { id: 'pair2', name: 'pair2', type: 'reference', refId: 'shoe2' }
+            { id: 'pair2', name: 'pair2', type: 'reference', refId: 'shoe2' },
+            { id: 'tag', name: 'tag', type: 'primitive', value: 120 },
+            { id: 'luxe', name: 'luxe', type: 'primitive', value: true },
           ],
           heap: [
             { id: 'shoe1', className: 'Sneaker (Garbage)', fields: [{ name: 'brand', value: '"Nike Air Max"' }, { name: 'price', value: 120 }] },
-            { id: 'shoe2', className: 'Sneaker', fields: [{ name: 'brand', value: '"Adidas Ultraboost"' }, { name: 'price', value: 180 }] }
+            { id: 'shoe2', className: 'Sneaker', fields: [{ name: 'brand', value: '"Adidas Ultraboost"' }, { name: 'price', value: 180 }] },
           ],
-          staticArea: []
-        }
-      }
+          staticArea: [],
+        },
+      },
+    ],
+    concepts: [
+      {
+        id: 'c1-5-this',
+        name: 'Implicit this',
+        description:
+          'Open for explicit `Sneaker this` and `this.` in the constructor, `getPrice()`, and `isLuxury()` (teaching overlay).',
+        files: [{ name: 'Sneaker.java', lines: [4, 5, 6, 9, 10, 13, 14] }],
+        implicitThis: { file: 'Sneaker.java', className: 'Sneaker' },
+      },
     ],
     quiz: {
       id: 'q1-5',
@@ -812,19 +1128,6 @@ public class Main {
         memory: { stack: [], heap: [], staticArea: [{ id: 'count', className: 'Fraction', name: 'count', value: 0 }] }
       }
     ],
-    quiz: {
-      id: 'q4-1',
-      question: "Which type of variable is shared across ALL instances of a class?",
-      options: [
-        "Instance variables",
-        "Local variables",
-        "Static variables",
-        "Parameters"
-      ],
-      correctAnswer: 2,
-      explanation: "Static variables are associated with the class itself, meaning there is only one copy of the variable in memory, shared by all objects of that class.",
-      points: 200
-    },
     concepts: [
       {
         id: 'c1',
@@ -857,7 +1160,20 @@ public class Main {
         description: 'A method (often called a "getter") that returns the value of an instance variable.',
         lines: [16, 17, 18]
       }
-    ]
+    ],
+    quiz: {
+      id: 'q4-1',
+      question: "Which type of variable is shared across ALL instances of a class?",
+      options: [
+        "Instance variables",
+        "Local variables",
+        "Static variables",
+        "Parameters"
+      ],
+      correctAnswer: 2,
+      explanation: "Static variables are associated with the class itself, meaning there is only one copy of the variable in memory, shared by all objects of that class.",
+      points: 200
+    }
   },
   {
     id: '4-2',
@@ -872,9 +1188,9 @@ public class Main {
   private String name;
   private int grade;
 
-  public Student(String name, int grade) {
-    this.name = name;
-    this.grade = grade;
+  public Student(String studentName, int initialGrade) {
+    name = studentName;
+    grade = initialGrade;
   }
 
   public void study() {
@@ -912,19 +1228,19 @@ public class Main {
         memory: { stack: [], heap: [], staticArea: [] },
         parameterPassing: {
           subtitle: 'Call site: two argument values head into the constructor (stack next step).',
-          calleeSignature: 'Student(String name, int grade)',
+          calleeSignature: 'Student(String studentName, int initialGrade)',
           mappings: [
             {
               formalType: 'String',
-              formalName: 'name',
+              formalName: 'studentName',
               actual: '"Alice"',
-              detail: 'String argument = reference value; that reference is copied into name (pass-by-value).',
+              detail: 'String argument = reference value; that reference is copied into studentName (pass-by-value).',
             },
             {
               formalType: 'int',
-              formalName: 'grade',
+              formalName: 'initialGrade',
               actual: '85',
-              detail: 'Primitive: a copy of 85 is stored in grade.',
+              detail: 'Primitive: a copy of 85 is stored in initialGrade.',
             },
           ],
           footnote: 'Java is pass-by-value: primitives copy data; objects copy the reference, not the object.',
@@ -934,30 +1250,31 @@ public class Main {
         id: 's2',
         codeLine: 4,
         activeFile: 'Student.java',
-        description: 'Constructor runs: parameters name and grade sit on the stack.',
+        description:
+          'Constructor runs: parameters studentName and initialGrade sit on the stack (different names from the fields so the assignments stay unambiguous in source).',
         parameterPassing: {
           subtitle: 'Formals are locals initialized with copies of the arguments.',
-          calleeSignature: 'Student(String name, int grade)',
+          calleeSignature: 'Student(String studentName, int initialGrade)',
           mappings: [
             {
               formalType: 'String',
-              formalName: 'name',
+              formalName: 'studentName',
               actual: '"Alice"',
-              detail: 'name holds a copy of the String reference; same String object as at the call unless reassigned.',
+              detail: 'studentName holds a copy of the String reference; same String object as at the call unless reassigned.',
             },
             {
               formalType: 'int',
-              formalName: 'grade',
+              formalName: 'initialGrade',
               actual: '85',
-              detail: 'grade holds a copy of 85; changing it does not change anything in Main.',
+              detail: 'initialGrade holds a copy of 85; changing it does not change anything in Main.',
             },
           ],
           footnote: 'Callee gets new parameter variables with copied values—not aliases of caller locals.',
         },
         memory: {
           stack: [
-            { id: 'name', name: 'name', type: 'reference', refId: 'str1' },
-            { id: 'grade', name: 'grade', type: 'primitive', value: 85 }
+            { id: 'sn', name: 'studentName', type: 'reference', refId: 'str1' },
+            { id: 'ig', name: 'initialGrade', type: 'primitive', value: 85 },
           ],
           heap: [
             { id: 'str1', className: 'String', fields: [{ name: 'value', value: '"Alice"' }] },
@@ -970,30 +1287,31 @@ public class Main {
         id: 's3',
         codeLine: 5,
         activeFile: 'Student.java',
-        description: 'this.name = name; this.grade = grade copy into the new object.',
+        description:
+          'name = studentName and grade = initialGrade copy into the new object. Unqualified field names mean the instance fields here; use the Implicit this concept to see the explicit receiver and this. form.',
         parameterPassing: {
           subtitle: 'Fields load from the same parameter copies.',
-          calleeSignature: 'Student(String name, int grade)',
+          calleeSignature: 'Student(String studentName, int initialGrade)',
           mappings: [
             {
               formalType: 'String',
-              formalName: 'name',
+              formalName: 'studentName',
               actual: '"Alice"',
-              detail: 'this.name gets the reference from parameter name (same String object).',
+              detail: 'Field name receives the reference from parameter studentName (same String object).',
             },
             {
               formalType: 'int',
-              formalName: 'grade',
+              formalName: 'initialGrade',
               actual: '85',
-              detail: 'this.grade gets the int copy from parameter grade.',
+              detail: 'Field grade receives the int copy from parameter initialGrade.',
             },
           ],
-          footnote: 'Parameters stay pass-by-value locals; assignments just copy their values into fields.',
+          footnote: 'Parameters stay pass-by-value locals; assignments copy their values into the object’s fields.',
         },
         memory: {
           stack: [
-            { id: 'name', name: 'name', type: 'reference', refId: 'str1' },
-            { id: 'grade', name: 'grade', type: 'primitive', value: 85 }
+            { id: 'sn', name: 'studentName', type: 'reference', refId: 'str1' },
+            { id: 'ig', name: 'initialGrade', type: 'primitive', value: 85 },
           ],
           heap: [
             { id: 'str1', className: 'String', fields: [{ name: 'value', value: '"Alice"' }] },
@@ -1080,19 +1398,6 @@ public class Main {
         }
       }
     ],
-    quiz: {
-      id: 'q4-2',
-      question: "What is the primary difference between a Class and a Client in Java?",
-      options: [
-        "A Class contains the main method, while a Client defines the object's blueprint.",
-        "A Class defines the blueprint (fields and methods), while a Client uses the blueprint to create and interact with objects.",
-        "A Class can only have static methods, while a Client has instance methods.",
-        "There is no difference; they are the same thing."
-      ],
-      correctAnswer: 1,
-      explanation: "A Class acts as a blueprint defining the structure and behavior of objects. A Client is the code (like a main method or another class) that instantiates those objects and calls their methods.",
-      points: 200
-    },
     concepts: [
       {
         id: 'c1',
@@ -1114,12 +1419,25 @@ public class Main {
       },
       {
         id: 'c4',
-        name: 'Implicit "this"',
-        description: 'Inside the instance method, "this" refers to the specific object that the method was called on.',
-        files: [{ name: 'Student.java', lines: [5, 6, 10] }],
+        name: 'Implicit this',
+        description: 'Open for explicit `Student this` and `this.` on fields (teaching overlay).',
+        files: [{ name: 'Student.java', lines: [4, 5, 6, 9, 10] }],
         implicitThis: { file: 'Student.java', className: 'Student' },
       },
     ],
+    quiz: {
+      id: 'q4-2',
+      question: "What is the primary difference between a Class and a Client in Java?",
+      options: [
+        "A Class contains the main method, while a Client defines the object's blueprint.",
+        "A Class defines the blueprint (fields and methods), while a Client uses the blueprint to create and interact with objects.",
+        "A Class can only have static methods, while a Client has instance methods.",
+        "There is no difference; they are the same thing."
+      ],
+      correctAnswer: 1,
+      explanation: "A Class acts as a blueprint defining the structure and behavior of objects. A Client is the code (like a main method or another class) that instantiates those objects and calls their methods.",
+      points: 200
+    },
   },
   {
     id: '5-1',
@@ -1282,19 +1600,6 @@ public class Main {
         }
       }
     ],
-    quiz: {
-      id: 'q5-1',
-      question: "What happens to local variables when a method finishes executing?",
-      options: [
-        "They are saved in the heap for later use.",
-        "They are removed from the stack and destroyed.",
-        "They become instance variables.",
-        "They are accessible by other methods in the same class."
-      ],
-      correctAnswer: 1,
-      explanation: "Local variables (including parameters) are created on the stack when a method is called and are destroyed when the method completes execution.",
-      points: 200
-    },
     concepts: [
       {
         id: 'c1',
@@ -1325,8 +1630,28 @@ public class Main {
         name: 'Object Creation',
         description: 'The "new" keyword allocates memory on the heap, calls the constructor, and returns a reference to the new object.',
         files: [{ name: 'Main.java', lines: [2] }]
-      }
-    ]
+      },
+      {
+        id: 'c6',
+        name: 'Implicit this',
+        description: 'Open for explicit `Calculator this` and `this.` on `total` (teaching overlay).',
+        files: [{ name: 'Calculator.java', lines: [3, 7, 12] }],
+        implicitThis: { file: 'Calculator.java', className: 'Calculator' },
+      },
+    ],
+    quiz: {
+      id: 'q5-1',
+      question: "What happens to local variables when a method finishes executing?",
+      options: [
+        "They are saved in the heap for later use.",
+        "They are removed from the stack and destroyed.",
+        "They become instance variables.",
+        "They are accessible by other methods in the same class."
+      ],
+      correctAnswer: 1,
+      explanation: "Local variables (including parameters) are created on the stack when a method is called and are destroyed when the method completes execution.",
+      points: 200
+    }
   },
   {
     id: '5-2',
@@ -1511,19 +1836,6 @@ public class Main {
         }
       }
     ],
-    quiz: {
-      id: 'q5-2',
-      question: "Why can't a static method access instance variables (like 'this.value') directly?",
-      options: [
-        "Because static methods are executed before the program starts.",
-        "Because static methods belong to the class, not to any specific object, so there is no 'this' object.",
-        "Because instance variables are private.",
-        "Because static methods can only return void."
-      ],
-      correctAnswer: 1,
-      explanation: "Static methods are called on the class itself, not on an instance of the class. Therefore, they don't have access to an implicit 'this' reference and cannot access instance variables directly.",
-      points: 200
-    },
     concepts: [
       {
         id: 'c5-2-1',
@@ -1550,12 +1862,25 @@ public class Main {
         files: [{ name: 'MathUtils.java', lines: [8, 9] }],
         implicitThis: { file: 'MathUtils.java', className: 'MathUtils' },
       }
-    ]
+    ],
+    quiz: {
+      id: 'q5-2',
+      question: "Why can't a static method access instance variables (like 'this.value') directly?",
+      options: [
+        "Because static methods are executed before the program starts.",
+        "Because static methods belong to the class, not to any specific object, so there is no 'this' object.",
+        "Because instance variables are private.",
+        "Because static methods can only return void."
+      ],
+      correctAnswer: 1,
+      explanation: "Static methods are called on the class itself, not on an instance of the class. Therefore, they don't have access to an implicit 'this' reference and cannot access instance variables directly.",
+      points: 200
+    }
   },
   {
     id: '6-1',
     order: 17,
-    chapter: '4 · Collections & algorithms',
+    chapter: '5 · Arrays & algorithms',
     title: '1D Arrays in Memory',
     code: `int[] scores = new int[3];
 scores[0] = 95;
@@ -1626,7 +1951,7 @@ scores[2] = 100;`,
   {
     id: '10-1',
     order: 23,
-    chapter: '5 · Inheritance & recursion',
+    chapter: '6 · Inheritance & recursion',
     title: 'Call Stack (Factorial)',
     code: `public int fact(int n) {
   if (n == 0) return 1;
@@ -1888,9 +2213,80 @@ for (int i = 1; i <= 3; i++) {
     }
   },
   {
+    id: '2-2',
+    order: 3,
+    chapter: '2 · Control flow',
+    title: 'Compound assignment & increment',
+    code: `int total = 10;
+total += 5;
+total++;
+int scale = 4;
+scale *= 3;`,
+    steps: [
+      {
+        id: 's0',
+        codeLine: -1,
+        description: 'Compound ops (+=, ++, *=) update the same stack slots — trace each rewrite.',
+        memory: { stack: [], heap: [], staticArea: [] },
+      },
+      {
+        id: 's1',
+        codeLine: 0,
+        description: "Primitive total starts at 10.",
+        memory: { stack: [{ id: 'total', name: 'total', type: 'primitive', value: 10 }], heap: [], staticArea: [] },
+      },
+      {
+        id: 's2',
+        codeLine: 1,
+        description: 'total += 5 stores 15 in the same variable.',
+        memory: { stack: [{ id: 'total', name: 'total', type: 'primitive', value: 15 }], heap: [], staticArea: [] },
+      },
+      {
+        id: 's3',
+        codeLine: 2,
+        description: 'post-increment: total becomes 16.',
+        memory: { stack: [{ id: 'total', name: 'total', type: 'primitive', value: 16 }], heap: [], staticArea: [] },
+      },
+      {
+        id: 's4',
+        codeLine: 3,
+        description: 'scale is another local primitive: 4.',
+        memory: {
+          stack: [
+            { id: 'total', name: 'total', type: 'primitive', value: 16 },
+            { id: 'scale', name: 'scale', type: 'primitive', value: 4 },
+          ],
+          heap: [],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's5',
+        codeLine: 4,
+        description: 'scale *= 3 rewrites scale to 12 (still beside total on the stack).',
+        memory: {
+          stack: [
+            { id: 'total', name: 'total', type: 'primitive', value: 16 },
+            { id: 'scale', name: 'scale', type: 'primitive', value: 12 },
+          ],
+          heap: [],
+          staticArea: [],
+        },
+      },
+    ],
+    quiz: {
+      id: 'q-2-2',
+      question: 'After total++; in this lesson, what value does total hold?',
+      options: ['10', '15', '16', '21'],
+      correctAnswer: 2,
+      explanation: '+= adds 5 (→15), then ++ adds 1 (→16).',
+      points: 150,
+    },
+  },
+  {
     id: '4-3',
     order: 19,
-    chapter: '4 · Collections & algorithms',
+    chapter: '4 · Collections',
     title: 'ArrayLists in Memory',
     code: `ArrayList<String> list = new ArrayList<>();
 list.add("Apple");
@@ -1940,19 +2336,6 @@ list.add("Banana");`,
         }
       }
     ],
-    quiz: {
-      id: 'q4-3',
-      question: "What does an ArrayList of objects actually store internally?",
-      options: [
-        "The objects themselves directly in contiguous memory.",
-        "References (memory addresses) to the objects.",
-        "Copies of the objects.",
-        "Primitive values only."
-      ],
-      correctAnswer: 1,
-      explanation: "Collections like ArrayList store references to objects, not the objects themselves. The actual objects live elsewhere on the heap.",
-      points: 200
-    },
     concepts: [
       {
         id: 'c1',
@@ -1972,7 +2355,163 @@ list.add("Banana");`,
         description: 'The ArrayList object on the heap contains references that point to other objects (like Strings) also on the heap.',
         lines: [1, 2]
       }
-    ]
+    ],
+    quiz: {
+      id: 'q4-3',
+      question: "What does an ArrayList of objects actually store internally?",
+      options: [
+        "The objects themselves directly in contiguous memory.",
+        "References (memory addresses) to the objects.",
+        "Copies of the objects.",
+        "Primitive values only."
+      ],
+      correctAnswer: 1,
+      explanation: "Collections like ArrayList store references to objects, not the objects themselves. The actual objects live elsewhere on the heap.",
+      points: 200
+    }
+  },
+  {
+    id: '4-4',
+    order: 17.4,
+    chapter: '5 · Arrays & algorithms',
+    title: 'Sequential search in an array',
+    code: `int[] data = {4, 9, 2};
+int target = 9;
+int idx = -1;
+for (int i = 0; i < data.length; i++) {
+  if (data[i] == target) {
+    idx = i;
+  }
+}`,
+    steps: [
+      {
+        id: 's0',
+        codeLine: -1,
+        description: 'Linear search: scan indices until data[i] matches target, recording idx.',
+        memory: { stack: [], heap: [], staticArea: [] },
+        arrayTrace: {
+          caption: 'We will compare each slot to target 9 in order.',
+          bands: [{ id: 'data', label: 'data (int[])', values: [4, 9, 2] }],
+          markers: [],
+        },
+      },
+      {
+        id: 's1',
+        codeLine: 0,
+        description: 'data references a heap int[]; target and idx are stack primitives.',
+        memory: {
+          stack: [
+            { id: 'data', name: 'data', type: 'reference', refId: 'arrData' },
+            { id: 'target', name: 'target', type: 'primitive', value: 9 },
+            { id: 'idx', name: 'idx', type: 'primitive', value: -1 },
+          ],
+          heap: [{ id: 'arrData', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 9 }, { name: '[2]', value: 2 }] }],
+          staticArea: [],
+        },
+        arrayTrace: {
+          caption: 'Array on the heap — search has not started yet.',
+          bands: [{ id: 'data', label: 'data (int[])', values: [4, 9, 2] }],
+          markers: [],
+        },
+      },
+      {
+        id: 's2',
+        codeLine: 3,
+        description: 'Loop local i on stack; first visits index 0 (no match yet, idx stays -1).',
+        memory: {
+          stack: [
+            { id: 'data', name: 'data', type: 'reference', refId: 'arrData' },
+            { id: 'target', name: 'target', type: 'primitive', value: 9 },
+            { id: 'idx', name: 'idx', type: 'primitive', value: -1 },
+            { id: 'i', name: 'i', type: 'primitive', value: 0 },
+          ],
+          heap: [{ id: 'arrData', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 9 }, { name: '[2]', value: 2 }] }],
+          staticArea: [],
+        },
+        arrayTrace: {
+          caption: 'i == 0: compare data[0] (4) with target (9); no match, idx stays −1.',
+          bands: [{ id: 'data', label: 'data (int[])', values: [4, 9, 2] }],
+          markers: [
+            { index: 0, kind: 'i' },
+            { index: 0, kind: 'compare', label: 'vs 9' },
+          ],
+        },
+      },
+      {
+        id: 's2b',
+        codeLine: 3,
+        description:
+          'The **for** header advances **i** to 1 (another iteration). We have not compared slot 1 yet in this step.',
+        memory: {
+          stack: [
+            { id: 'data', name: 'data', type: 'reference', refId: 'arrData' },
+            { id: 'target', name: 'target', type: 'primitive', value: 9 },
+            { id: 'idx', name: 'idx', type: 'primitive', value: -1 },
+            { id: 'i', name: 'i', type: 'primitive', value: 1 },
+          ],
+          heap: [{ id: 'arrData', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 9 }, { name: '[2]', value: 2 }] }],
+          staticArea: [],
+        },
+        arrayTrace: {
+          caption: 'i == 1 — about to test data[1] against 9.',
+          bands: [{ id: 'data', label: 'data (int[])', values: [4, 9, 2] }],
+          markers: [
+            { index: 1, kind: 'i' },
+            { index: 0, kind: 'compare', label: 'was 4' },
+          ],
+        },
+      },
+      {
+        id: 's3',
+        codeLine: 4,
+        description: 'At i = 1, data[i] == target so idx becomes 1.',
+        memory: {
+          stack: [
+            { id: 'data', name: 'data', type: 'reference', refId: 'arrData' },
+            { id: 'target', name: 'target', type: 'primitive', value: 9 },
+            { id: 'idx', name: 'idx', type: 'primitive', value: 1 },
+            { id: 'i', name: 'i', type: 'primitive', value: 1 },
+          ],
+          heap: [{ id: 'arrData', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 9 }, { name: '[2]', value: 2 }] }],
+          staticArea: [],
+        },
+        arrayTrace: {
+          caption: 'Match at i == 1 — idx updated to 1 (heap array unchanged).',
+          bands: [{ id: 'data', label: 'data (int[])', values: [4, 9, 2] }],
+          markers: [
+            { index: 1, kind: 'i' },
+            { index: 1, kind: 'compare', label: 'hit' },
+          ],
+        },
+      },
+      {
+        id: 's4',
+        codeLine: 3,
+        description: 'Loop finishes; i is out of scope — idx remains the last match index (1).',
+        memory: {
+          stack: [
+            { id: 'data', name: 'data', type: 'reference', refId: 'arrData' },
+            { id: 'target', name: 'target', type: 'primitive', value: 9 },
+            { id: 'idx', name: 'idx', type: 'primitive', value: 1 },
+          ],
+          heap: [{ id: 'arrData', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 9 }, { name: '[2]', value: 2 }] }],
+          staticArea: [],
+        },
+        arrayTrace: {
+          caption: 'Search finished — answer is index 1 (value 9).',
+          bands: [{ id: 'data', label: 'data (int[])', values: [4, 9, 2] }],
+          markers: [{ index: 1, kind: 'compare', label: 'found' }],
+        },
+      },
+    ],
+    quiz: {
+      id: 'q-4-4',
+      question: 'For target 9 in {4, 9, 2}, what idx does this search leave on the stack?',
+      options: ['-1', '0', '1', '2'],
+      correctAnswer: 2,
+      explanation: '9 appears at index 1.',
+      points: 175,
+    },
   },
   {
     id: 'ap-1-1',
@@ -2039,14 +2578,6 @@ int rounded = (int) total;`,
         }
       }
     ],
-    quiz: {
-      id: 'q-ap-1-1',
-      question: 'What does (int) 17.9 evaluate to in Java?',
-      options: ['18', '17.9', '17', 'A compile-time error'],
-      correctAnswer: 2,
-      explanation: 'Casting a double to int truncates toward zero, so the decimal part is removed.',
-      points: 150
-    }
   },
   {
     id: 'ap-3-1',
@@ -2192,6 +2723,118 @@ int len = upper.length();`,
       explanation: 'The return value depends on the method signature. For String.length(), the return type is int.',
       points: 150
     }
+  },
+  {
+    id: 'ap-3-2',
+    order: 14.5,
+    chapter: '3 · Objects & classes',
+    title: 'String: == vs equals',
+    code: '',
+    files: [
+      {
+        name: 'Main.java',
+        code: `public class Main {
+  public static void main(String[] args) {
+    String a = "hi";
+    String b = "hi";
+    String c = new String("hi");
+    boolean sameRefAB = (a == b);
+    boolean sameText = a.equals(b);
+    boolean refEqAC = (a == c);
+    boolean textEqAC = a.equals(c);
+  }
+}
+`,
+      },
+    ],
+    steps: [
+      {
+        id: 's0',
+        codeLine: -1,
+        activeFile: 'Main.java',
+        description: 'Literal pooling vs new String: reference identity (==) vs character equality (equals).',
+        fileLinks: [{ file: 'Main.java', label: 'Main.java' }],
+        memory: { stack: [], heap: [], staticArea: [] },
+      },
+      {
+        id: 's1',
+        codeLine: 2,
+        activeFile: 'Main.java',
+        description: 'a points at one String object for "hi".',
+        memory: {
+          stack: [{ id: 'a', name: 'a', type: 'reference', refId: 'str1' }],
+          heap: [{ id: 'str1', className: 'String', fields: [{ name: 'value', value: '"hi"' }] }],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's2',
+        codeLine: 3,
+        activeFile: 'Main.java',
+        description: 'b uses the same pooled literal — a and b share one heap String.',
+        memory: {
+          stack: [
+            { id: 'a', name: 'a', type: 'reference', refId: 'str1' },
+            { id: 'b', name: 'b', type: 'reference', refId: 'str1' },
+          ],
+          heap: [{ id: 'str1', className: 'String', fields: [{ name: 'value', value: '"hi"' }] }],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's3',
+        codeLine: 4,
+        activeFile: 'Main.java',
+        description: 'new String("hi") allocates a second object with identical characters.',
+        memory: {
+          stack: [
+            { id: 'a', name: 'a', type: 'reference', refId: 'str1' },
+            { id: 'b', name: 'b', type: 'reference', refId: 'str1' },
+            { id: 'c', name: 'c', type: 'reference', refId: 'str2' },
+          ],
+          heap: [
+            { id: 'str1', className: 'String', fields: [{ name: 'value', value: '"hi"' }] },
+            { id: 'str2', className: 'String', fields: [{ name: 'value', value: '"hi"' }] },
+          ],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's4',
+        codeLine: 8,
+        activeFile: 'Main.java',
+        description: 'sameRefAB true; sameText true; refEqAC false (different objects); textEqAC true.',
+        memory: {
+          stack: [
+            { id: 'a', name: 'a', type: 'reference', refId: 'str1' },
+            { id: 'b', name: 'b', type: 'reference', refId: 'str1' },
+            { id: 'c', name: 'c', type: 'reference', refId: 'str2' },
+            { id: 'sameRefAB', name: 'sameRefAB', type: 'primitive', value: true },
+            { id: 'sameText', name: 'sameText', type: 'primitive', value: true },
+            { id: 'refEqAC', name: 'refEqAC', type: 'primitive', value: false },
+            { id: 'textEqAC', name: 'textEqAC', type: 'primitive', value: true },
+          ],
+          heap: [
+            { id: 'str1', className: 'String', fields: [{ name: 'value', value: '"hi"' }] },
+            { id: 'str2', className: 'String', fields: [{ name: 'value', value: '"hi"' }] },
+          ],
+          staticArea: [],
+        },
+      },
+    ],
+    quiz: {
+      id: 'q-ap-3-2',
+      question: 'When should you use equals instead of == for String text?',
+      options: [
+        'Never — == is always enough',
+        'When comparing character content, not reference identity',
+        'Only for literals',
+        'Only inside loops',
+      ],
+      correctAnswer: 1,
+      explanation: '== compares references; equals compares the underlying character sequence.',
+      points: 200,
+    },
   },
   {
     id: 'ap-4-1',
@@ -2343,6 +2986,15 @@ while (n > 0) {
         }
       }
     ],
+    concepts: [
+      {
+        id: 'c-ap-5-1-this',
+        name: 'Implicit this',
+        description: 'Open for explicit `BankAccount this` and `this.` on `balance` (teaching overlay).',
+        files: [{ name: 'BankAccount.java', lines: [3, 4, 5, 6, 7, 8, 9, 10] }],
+        implicitThis: { file: 'BankAccount.java', className: 'BankAccount' },
+      },
+    ],
     quiz: {
       id: 'q-ap-5-1',
       question: 'Which method type should modify an object’s state?',
@@ -2355,7 +3007,7 @@ while (n > 0) {
   {
     id: 'ap-6-1',
     order: 18,
-    chapter: '4 · Collections & algorithms',
+    chapter: '5 · Arrays & algorithms',
     title: 'Array Traversal and Updating',
     code: `int[] scores = {70, 85, 90};
 int sum = 0;
@@ -2394,17 +3046,101 @@ for (int i = 0; i < scores.length; i++) {
       },
       {
         id: 's3',
-        codeLine: 3,
-        description: "During traversal, each element is added to sum. Final value is 245.",
+        codeLine: 2,
+        description: 'First iteration: **i = 0**, condition **i < scores.length** is true; about to run the body.',
         memory: {
           stack: [
             { id: 'scores', name: 'scores', type: 'reference', refId: 'arrScores' },
-            { id: 'sum', name: 'sum', type: 'primitive', value: 245 }
+            { id: 'sum', name: 'sum', type: 'primitive', value: 0 },
+            { id: 'i', name: 'i', type: 'primitive', value: 0 },
           ],
           heap: [{ id: 'arrScores', className: 'int[]', fields: [{ name: '[0]', value: 70 }, { name: '[1]', value: 85 }, { name: '[2]', value: 90 }] }],
-          staticArea: []
-        }
-      }
+          staticArea: [],
+        },
+      },
+      {
+        id: 's4',
+        codeLine: 3,
+        description: '**sum += scores[0]** → **sum = 0 + 70 = 70**.',
+        memory: {
+          stack: [
+            { id: 'scores', name: 'scores', type: 'reference', refId: 'arrScores' },
+            { id: 'sum', name: 'sum', type: 'primitive', value: 70 },
+            { id: 'i', name: 'i', type: 'primitive', value: 0 },
+          ],
+          heap: [{ id: 'arrScores', className: 'int[]', fields: [{ name: '[0]', value: 70 }, { name: '[1]', value: 85 }, { name: '[2]', value: 90 }] }],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's5',
+        codeLine: 2,
+        description: '**i** becomes **1**; still **i < 3** — second iteration.',
+        memory: {
+          stack: [
+            { id: 'scores', name: 'scores', type: 'reference', refId: 'arrScores' },
+            { id: 'sum', name: 'sum', type: 'primitive', value: 70 },
+            { id: 'i', name: 'i', type: 'primitive', value: 1 },
+          ],
+          heap: [{ id: 'arrScores', className: 'int[]', fields: [{ name: '[0]', value: 70 }, { name: '[1]', value: 85 }, { name: '[2]', value: 90 }] }],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's6',
+        codeLine: 3,
+        description: '**sum += scores[1]** → **70 + 85 = 155**.',
+        memory: {
+          stack: [
+            { id: 'scores', name: 'scores', type: 'reference', refId: 'arrScores' },
+            { id: 'sum', name: 'sum', type: 'primitive', value: 155 },
+            { id: 'i', name: 'i', type: 'primitive', value: 1 },
+          ],
+          heap: [{ id: 'arrScores', className: 'int[]', fields: [{ name: '[0]', value: 70 }, { name: '[1]', value: 85 }, { name: '[2]', value: 90 }] }],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's7',
+        codeLine: 2,
+        description: '**i = 2**; last index still satisfies **i < 3**.',
+        memory: {
+          stack: [
+            { id: 'scores', name: 'scores', type: 'reference', refId: 'arrScores' },
+            { id: 'sum', name: 'sum', type: 'primitive', value: 155 },
+            { id: 'i', name: 'i', type: 'primitive', value: 2 },
+          ],
+          heap: [{ id: 'arrScores', className: 'int[]', fields: [{ name: '[0]', value: 70 }, { name: '[1]', value: 85 }, { name: '[2]', value: 90 }] }],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's8',
+        codeLine: 3,
+        description: '**sum += scores[2]** → **155 + 90 = 245**.',
+        memory: {
+          stack: [
+            { id: 'scores', name: 'scores', type: 'reference', refId: 'arrScores' },
+            { id: 'sum', name: 'sum', type: 'primitive', value: 245 },
+            { id: 'i', name: 'i', type: 'primitive', value: 2 },
+          ],
+          heap: [{ id: 'arrScores', className: 'int[]', fields: [{ name: '[0]', value: 70 }, { name: '[1]', value: 85 }, { name: '[2]', value: 90 }] }],
+          staticArea: [],
+        },
+      },
+      {
+        id: 's9',
+        codeLine: 2,
+        description: '**i++** makes **i = 3**; **i < scores.length** is false — loop exits. **i** goes out of scope.',
+        memory: {
+          stack: [
+            { id: 'scores', name: 'scores', type: 'reference', refId: 'arrScores' },
+            { id: 'sum', name: 'sum', type: 'primitive', value: 245 },
+          ],
+          heap: [{ id: 'arrScores', className: 'int[]', fields: [{ name: '[0]', value: 70 }, { name: '[1]', value: 85 }, { name: '[2]', value: 90 }] }],
+          staticArea: [],
+        },
+      },
     ],
     quiz: {
       id: 'q-ap-6-1',
@@ -2418,7 +3154,7 @@ for (int i = 0; i < scores.length; i++) {
   {
     id: 'ap-7-1',
     order: 20,
-    chapter: '4 · Collections & algorithms',
+    chapter: '4 · Collections',
     title: 'ArrayList add, set, and remove',
     code: `ArrayList<String> names = new ArrayList<>();
 names.add("Ava");
@@ -2490,7 +3226,7 @@ names.remove(0);`,
   {
     id: 'ap-8-1',
     order: 21,
-    chapter: '4 · Collections & algorithms',
+    chapter: '5 · Arrays & algorithms',
     title: '2D Array Row-Major Traversal',
     code: `int[][] grid = {
   {1, 2},
@@ -2507,7 +3243,17 @@ for (int r = 0; r < grid.length; r++) {
         id: 's0',
         codeLine: -1,
         description: '2D grid: nested loops and row-major traversal.',
-        memory: { stack: [], heap: [], staticArea: [] }
+        memory: { stack: [], heap: [], staticArea: [] },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption:
+            'Logical matrix: row r and column c match grid[r][c]. Row-major order walks one full row before r advances.',
+          bands: [
+            { id: 'g0', label: 'grid[0] (int[])', values: [1, 2] },
+            { id: 'g1', label: 'grid[1] (int[])', values: [3, 4] },
+          ],
+          markers: [],
+        },
       },
       {
         id: 's1',
@@ -2521,16 +3267,28 @@ for (int r = 0; r < grid.length; r++) {
             { id: 'row1', className: 'int[]', fields: [{ name: '[0]', value: 3 }, { name: '[1]', value: 4 }] }
           ],
           staticArea: []
-        }
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: 'Heap: grid references two row arrays — the grid matches this layout.',
+          bands: [
+            { id: 'g0', label: 'grid[0] (int[])', values: [1, 2] },
+            { id: 'g1', label: 'grid[1] (int[])', values: [3, 4] },
+          ],
+          markers: [],
+        },
       },
       {
         id: 's2',
-        codeLine: 4,
-        description: "A running total variable is initialized before nested loops begin.",
+        codeLine: 7,
+        description:
+          '**total = 0**; outer loop **r = 0**, inner **c = 0** — about to add **grid[0][0]** (value 1).',
         memory: {
           stack: [
             { id: 'grid', name: 'grid', type: 'reference', refId: 'grid2d' },
-            { id: 'total', name: 'total', type: 'primitive', value: 0 }
+            { id: 'total', name: 'total', type: 'primitive', value: 0 },
+            { id: 'r', name: 'r', type: 'primitive', value: 0 },
+            { id: 'c', name: 'c', type: 'primitive', value: 0 },
           ],
           heap: [
             { id: 'grid2d', className: 'int[][]', fields: [{ name: '[0]', value: '@row0' }, { name: '[1]', value: '@row1' }] },
@@ -2538,12 +3296,117 @@ for (int r = 0; r < grid.length; r++) {
             { id: 'row1', className: 'int[]', fields: [{ name: '[0]', value: 3 }, { name: '[1]', value: 4 }] }
           ],
           staticArea: []
-        }
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: 'Current cell **(0,0)** — first in row-major order.',
+          bands: [
+            { id: 'g0', label: 'grid[0] (int[])', values: [1, 2] },
+            { id: 'g1', label: 'grid[1] (int[])', values: [3, 4] },
+          ],
+          markers: [{ bandId: 'g0', index: 0, kind: 'compare', label: '+=1' }],
+        },
+      },
+      {
+        id: 's2b',
+        codeLine: 6,
+        description: 'After **total += grid[0][0]**: total is **1**. Inner **c** becomes **1**.',
+        memory: {
+          stack: [
+            { id: 'grid', name: 'grid', type: 'reference', refId: 'grid2d' },
+            { id: 'total', name: 'total', type: 'primitive', value: 1 },
+            { id: 'r', name: 'r', type: 'primitive', value: 0 },
+            { id: 'c', name: 'c', type: 'primitive', value: 1 },
+          ],
+          heap: [
+            { id: 'grid2d', className: 'int[][]', fields: [{ name: '[0]', value: '@row0' }, { name: '[1]', value: '@row1' }] },
+            { id: 'row0', className: 'int[]', fields: [{ name: '[0]', value: 1 }, { name: '[1]', value: 2 }] },
+            { id: 'row1', className: 'int[]', fields: [{ name: '[0]', value: 3 }, { name: '[1]', value: 4 }] }
+          ],
+          staticArea: []
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: '**(0,0)** done (green). Next: **(0,1)** adds 2 → total will be 3.',
+          bands: [
+            { id: 'g0', label: 'grid[0] (int[])', values: [1, 2] },
+            { id: 'g1', label: 'grid[1] (int[])', values: [3, 4] },
+          ],
+          markers: [
+            { bandId: 'g0', index: 0, kind: 'sortedThrough' },
+            { bandId: 'g0', index: 1, kind: 'compare', label: '+=2' },
+          ],
+        },
+      },
+      {
+        id: 's2c',
+        codeLine: 6,
+        description: '**total = 3**. **r = 1**, **c = 0** — first cell of the second row.',
+        memory: {
+          stack: [
+            { id: 'grid', name: 'grid', type: 'reference', refId: 'grid2d' },
+            { id: 'total', name: 'total', type: 'primitive', value: 3 },
+            { id: 'r', name: 'r', type: 'primitive', value: 1 },
+            { id: 'c', name: 'c', type: 'primitive', value: 0 },
+          ],
+          heap: [
+            { id: 'grid2d', className: 'int[][]', fields: [{ name: '[0]', value: '@row0' }, { name: '[1]', value: '@row1' }] },
+            { id: 'row0', className: 'int[]', fields: [{ name: '[0]', value: 1 }, { name: '[1]', value: 2 }] },
+            { id: 'row1', className: 'int[]', fields: [{ name: '[0]', value: 3 }, { name: '[1]', value: 4 }] }
+          ],
+          staticArea: []
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: 'Row **0** finished; outer loop advanced **r**. Now at **(1,0)**.',
+          bands: [
+            { id: 'g0', label: 'grid[0] (int[])', values: [1, 2] },
+            { id: 'g1', label: 'grid[1] (int[])', values: [3, 4] },
+          ],
+          markers: [
+            { bandId: 'g0', index: 0, kind: 'sortedThrough' },
+            { bandId: 'g0', index: 1, kind: 'sortedThrough' },
+            { bandId: 'g1', index: 0, kind: 'compare', label: '+=3' },
+          ],
+        },
+      },
+      {
+        id: 's2d',
+        codeLine: 6,
+        description: '**total = 6**. About to add **grid[1][1] = 4**.',
+        memory: {
+          stack: [
+            { id: 'grid', name: 'grid', type: 'reference', refId: 'grid2d' },
+            { id: 'total', name: 'total', type: 'primitive', value: 6 },
+            { id: 'r', name: 'r', type: 'primitive', value: 1 },
+            { id: 'c', name: 'c', type: 'primitive', value: 1 },
+          ],
+          heap: [
+            { id: 'grid2d', className: 'int[][]', fields: [{ name: '[0]', value: '@row0' }, { name: '[1]', value: '@row1' }] },
+            { id: 'row0', className: 'int[]', fields: [{ name: '[0]', value: 1 }, { name: '[1]', value: 2 }] },
+            { id: 'row1', className: 'int[]', fields: [{ name: '[0]', value: 3 }, { name: '[1]', value: 4 }] }
+          ],
+          staticArea: []
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: '**(1,0)** done. Last visit **(1,1)** completes the walk.',
+          bands: [
+            { id: 'g0', label: 'grid[0] (int[])', values: [1, 2] },
+            { id: 'g1', label: 'grid[1] (int[])', values: [3, 4] },
+          ],
+          markers: [
+            { bandId: 'g0', index: 0, kind: 'sortedThrough' },
+            { bandId: 'g0', index: 1, kind: 'sortedThrough' },
+            { bandId: 'g1', index: 0, kind: 'sortedThrough' },
+            { bandId: 'g1', index: 1, kind: 'compare', label: '+=4' },
+          ],
+        },
       },
       {
         id: 's3',
-        codeLine: 7,
-        description: "Row-major traversal visits 1, 2, 3, 4 in order; total ends at 10.",
+        codeLine: 6,
+        description: 'Row-major traversal finished: **1+2+3+4 = 10**.',
         memory: {
           stack: [
             { id: 'grid', name: 'grid', type: 'reference', refId: 'grid2d' },
@@ -2555,7 +3418,21 @@ for (int r = 0; r < grid.length; r++) {
             { id: 'row1', className: 'int[]', fields: [{ name: '[0]', value: 3 }, { name: '[1]', value: 4 }] }
           ],
           staticArea: []
-        }
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: 'Order was **(0,0)→(0,1)→(1,0)→(1,1)** — **c** moves fastest while **r** is fixed.',
+          bands: [
+            { id: 'g0', label: 'grid[0] (int[])', values: [1, 2] },
+            { id: 'g1', label: 'grid[1] (int[])', values: [3, 4] },
+          ],
+          markers: [
+            { bandId: 'g0', index: 0, kind: 'sortedThrough' },
+            { bandId: 'g0', index: 1, kind: 'sortedThrough' },
+            { bandId: 'g1', index: 0, kind: 'sortedThrough' },
+            { bandId: 'g1', index: 1, kind: 'compare', label: 'last' },
+          ],
+        },
       }
     ],
     quiz: {
@@ -2570,7 +3447,7 @@ for (int r = 0; r < grid.length; r++) {
   {
     id: 'ap-9-1',
     order: 22,
-    chapter: '5 · Inheritance & recursion',
+    chapter: '6 · Inheritance & recursion',
     title: 'Superclass, Subclass, and Overriding',
     classHierarchy: [
       { className: 'Vehicle', file: 'Vehicle.java', extends: null },
@@ -2661,7 +3538,43 @@ for (int r = 0; r < grid.length; r++) {
           ],
           staticArea: []
         }
-      }
+      },
+      {
+        id: 's3',
+        codeLine: 3,
+        activeFile: 'Car.java',
+        description: 'Inside Car.move(): return runs on the same receiver that dynamic dispatch bound to this.',
+        parameterPassing: {
+          subtitle: 'Inside the override, this is the Car instance.',
+          calleeSignature: 'String move(Car this)',
+          mappings: [
+            {
+              formalType: 'Car',
+              formalName: 'this',
+              actual: 'v',
+              detail: 'Runtime type Car; method body uses this object’s state.',
+            },
+          ],
+          footnote: 'The String literal is created and returned to the caller’s msg slot.',
+        },
+        memory: {
+          stack: [{ id: 'v', name: 'v', type: 'reference', refId: 'car1' }],
+          heap: [{ id: 'car1', className: 'Car', fields: [] }],
+          staticArea: [],
+        },
+      },
+    ],
+    concepts: [
+      {
+        id: 'c-ap-9-1-this',
+        name: 'Implicit this',
+        description: 'Open for explicit `Vehicle this` / `Car this` and `this.` on instance code (teaching overlay).',
+        files: [
+          { name: 'Vehicle.java', lines: [1, 2, 3] },
+          { name: 'Car.java', lines: [1, 2, 3, 4] },
+        ],
+        implicitThis: { file: 'Car.java', className: 'Car' },
+      },
     ],
     quiz: {
       id: 'q-ap-9-1',
@@ -2680,7 +3593,7 @@ for (int r = 0; r < grid.length; r++) {
   {
     id: 'ap-10-1',
     order: 24,
-    chapter: '5 · Inheritance & recursion',
+    chapter: '6 · Inheritance & recursion',
     title: 'Recursive Sum with Base Case',
     code: `public int sumTo(int n) {
   if (n == 1) {
@@ -2805,7 +3718,7 @@ for (int r = 0; r < grid.length; r++) {
   {
     id: '6-lib-arraylist',
     order: 26,
-    chapter: '6 · Libraries',
+    chapter: '7 · Libraries',
     title: 'ArrayList & List',
     code: `import java.util.ArrayList;
 import java.util.List;
@@ -2907,14 +3820,6 @@ public class ArrayListAndList {
         ],
       },
     ],
-    quiz: {
-      id: 'q-6-lib-arraylist',
-      question: 'How do you obtain the number of elements currently stored in an ArrayList nums?',
-      options: ['nums.length', 'nums.size()', 'ArrayList.count(nums)', 'nums.getLength()'],
-      correctAnswer: 1,
-      explanation: 'ArrayList uses the instance method size(). length is for arrays and Strings.',
-      points: 200,
-    },
     concepts: [
       {
         id: 'c-6-lib-al-1',
@@ -2929,11 +3834,19 @@ public class ArrayListAndList {
         lines: [16, 17],
       },
     ],
+    quiz: {
+      id: 'q-6-lib-arraylist',
+      question: 'How do you obtain the number of elements currently stored in an ArrayList nums?',
+      options: ['nums.length', 'nums.size()', 'ArrayList.count(nums)', 'nums.getLength()'],
+      correctAnswer: 1,
+      explanation: 'ArrayList uses the instance method size(). length is for arrays and Strings.',
+      points: 200,
+    },
   },
   {
     id: '6-lib-string',
     order: 27,
-    chapter: '6 · Libraries',
+    chapter: '7 · Libraries',
     title: 'String methods',
     code: `public class StringDemo {
   public static void main(String[] args) {
@@ -2980,6 +3893,14 @@ public class ArrayListAndList {
         ],
       },
     ],
+    concepts: [
+      {
+        id: 'c-6-lib-str-1',
+        name: 'Common String API',
+        description: 'length, substring (end index exclusive), indexOf, equals.',
+        lines: [4, 5, 6, 7, 8],
+      },
+    ],
     quiz: {
       id: 'q-6-lib-string',
       question: 'Which is true about comparing two String objects for equal text?',
@@ -2994,19 +3915,11 @@ public class ArrayListAndList {
         '== tests reference equality; .equals(...) tests whether the character sequences match—what you want for String content.',
       points: 200,
     },
-    concepts: [
-      {
-        id: 'c-6-lib-str-1',
-        name: 'Common String API',
-        description: 'length, substring (end index exclusive), indexOf, equals.',
-        lines: [4, 5, 6, 7, 8],
-      },
-    ],
   },
   {
     id: '6-lib-math',
     order: 28,
-    chapter: '6 · Libraries',
+    chapter: '7 · Libraries',
     title: 'Math & wrapper classes',
     code: `public class MathAndWrappers {
   public static void main(String[] args) {
@@ -3084,19 +3997,6 @@ public class ArrayListAndList {
         ],
       },
     ],
-    quiz: {
-      id: 'q-6-lib-math',
-      question: 'Which statement about java.lang.Math is correct?',
-      options: [
-        'You must do new Math() before calling methods',
-        'All useful methods are static; you call Math.methodName(...)',
-        'Math can only generate random integers',
-        'Math is in java.util and must be imported',
-      ],
-      correctAnswer: 1,
-      explanation: 'Math is a final class with a private constructor; its methods are static utilities.',
-      points: 200,
-    },
     concepts: [
       {
         id: 'c-6-lib-math-1',
@@ -3111,11 +4011,24 @@ public class ArrayListAndList {
         lines: [12, 13, 14, 15],
       },
     ],
+    quiz: {
+      id: 'q-6-lib-math',
+      question: 'Which statement about java.lang.Math is correct?',
+      options: [
+        'You must do new Math() before calling methods',
+        'All useful methods are static; you call Math.methodName(...)',
+        'Math can only generate random integers',
+        'Math is in java.util and must be imported',
+      ],
+      correctAnswer: 1,
+      explanation: 'Math is a final class with a private constructor; its methods are static utilities.',
+      points: 200,
+    },
   },
   {
     id: '6-lib-2d',
     order: 29,
-    chapter: '6 · Libraries',
+    chapter: '7 · Libraries',
     title: '2D arrays (row-major)',
     code: `public class TwoDArrayDemo {
   public static void main(String[] args) {
@@ -3135,11 +4048,138 @@ public class ArrayListAndList {
         description:
           'A 2D array is an array of row arrays. Row-major traversal: for each row r, visit columns 0 .. m[r].length - 1.',
         memory: { stack: [], heap: [], staticArea: [] },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption:
+            '2×3 logical grid: **m[r][c]** uses row **r** and column **c**. Inner loop **c** runs across each row before **r** advances.',
+          bands: [
+            { id: 'm0', label: 'm[0] (int[])', values: [1, 2, 3] },
+            { id: 'm1', label: 'm[1] (int[])', values: [4, 5, 6] },
+          ],
+          markers: [],
+        },
       },
       {
         id: 's1',
-        codeLine: 8,
-        description: 'After the loops, total has summed every cell—outer bound m.length, inner bound m[r].length.',
+        codeLine: 6,
+        description:
+          '**r = 0**, **c = 0**, **total = 0** — first visit **m[0][0] = 1**.',
+        memory: {
+          stack: [
+            { id: 'm', name: 'm', type: 'reference', refId: 'm2d' },
+            { id: 'total', name: 'total', type: 'primitive', value: 0 },
+            { id: 'r', name: 'r', type: 'primitive', value: 0 },
+            { id: 'c', name: 'c', type: 'primitive', value: 0 },
+          ],
+          heap: [
+            { id: 'm2d', className: 'int[][]', fields: [{ name: '[0]', value: '@mRow0' }, { name: '[1]', value: '@mRow1' }] },
+            { id: 'mRow0', className: 'int[]', fields: [{ name: '[0]', value: 1 }, { name: '[1]', value: 2 }, { name: '[2]', value: 3 }] },
+            { id: 'mRow1', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 5 }, { name: '[2]', value: 6 }] },
+          ],
+          staticArea: [],
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: 'Start at **(0,0)** — top-left in row-major order.',
+          bands: [
+            { id: 'm0', label: 'm[0] (int[])', values: [1, 2, 3] },
+            { id: 'm1', label: 'm[1] (int[])', values: [4, 5, 6] },
+          ],
+          markers: [{ bandId: 'm0', index: 0, kind: 'compare', label: '+=1' }],
+        },
+        highlights: [
+          { line: 4, colorClass: 'bg-rose-500/20', label: '2D' },
+          { line: 5, colorClass: 'bg-rose-500/20' },
+          { line: 6, colorClass: 'bg-rose-500/20' },
+          { line: 7, colorClass: 'bg-rose-500/20' },
+        ],
+      },
+      {
+        id: 's2',
+        codeLine: 6,
+        description:
+          '**total = 6** after finishing row **0** (1+2+3). Outer loop sets **r = 1**; inner starts **c = 0** at **m[1][0] = 4**.',
+        memory: {
+          stack: [
+            { id: 'm', name: 'm', type: 'reference', refId: 'm2d' },
+            { id: 'total', name: 'total', type: 'primitive', value: 6 },
+            { id: 'r', name: 'r', type: 'primitive', value: 1 },
+            { id: 'c', name: 'c', type: 'primitive', value: 0 },
+          ],
+          heap: [
+            { id: 'm2d', className: 'int[][]', fields: [{ name: '[0]', value: '@mRow0' }, { name: '[1]', value: '@mRow1' }] },
+            { id: 'mRow0', className: 'int[]', fields: [{ name: '[0]', value: 1 }, { name: '[1]', value: 2 }, { name: '[2]', value: 3 }] },
+            { id: 'mRow1', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 5 }, { name: '[2]', value: 6 }] },
+          ],
+          staticArea: [],
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: 'Entire first row visited (green). **c** resets for the new row while **r** is **1**.',
+          bands: [
+            { id: 'm0', label: 'm[0] (int[])', values: [1, 2, 3] },
+            { id: 'm1', label: 'm[1] (int[])', values: [4, 5, 6] },
+          ],
+          markers: [
+            { bandId: 'm0', index: 0, kind: 'sortedThrough' },
+            { bandId: 'm0', index: 1, kind: 'sortedThrough' },
+            { bandId: 'm0', index: 2, kind: 'sortedThrough' },
+            { bandId: 'm1', index: 0, kind: 'compare', label: '+=4' },
+          ],
+        },
+        highlights: [
+          { line: 4, colorClass: 'bg-rose-500/20', label: '2D' },
+          { line: 5, colorClass: 'bg-rose-500/20' },
+          { line: 6, colorClass: 'bg-rose-500/20' },
+          { line: 7, colorClass: 'bg-rose-500/20' },
+        ],
+      },
+      {
+        id: 's3',
+        codeLine: 6,
+        description:
+          '**total = 15**; about to add **m[1][2] = 6** — last cell in row-major order.',
+        memory: {
+          stack: [
+            { id: 'm', name: 'm', type: 'reference', refId: 'm2d' },
+            { id: 'total', name: 'total', type: 'primitive', value: 15 },
+            { id: 'r', name: 'r', type: 'primitive', value: 1 },
+            { id: 'c', name: 'c', type: 'primitive', value: 2 },
+          ],
+          heap: [
+            { id: 'm2d', className: 'int[][]', fields: [{ name: '[0]', value: '@mRow0' }, { name: '[1]', value: '@mRow1' }] },
+            { id: 'mRow0', className: 'int[]', fields: [{ name: '[0]', value: 1 }, { name: '[1]', value: 2 }, { name: '[2]', value: 3 }] },
+            { id: 'mRow1', className: 'int[]', fields: [{ name: '[0]', value: 4 }, { name: '[1]', value: 5 }, { name: '[2]', value: 6 }] },
+          ],
+          staticArea: [],
+        },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption: 'Only **(1,2)** remains; **c** has walked 0→1→2 on this row.',
+          bands: [
+            { id: 'm0', label: 'm[0] (int[])', values: [1, 2, 3] },
+            { id: 'm1', label: 'm[1] (int[])', values: [4, 5, 6] },
+          ],
+          markers: [
+            { bandId: 'm0', index: 0, kind: 'sortedThrough' },
+            { bandId: 'm0', index: 1, kind: 'sortedThrough' },
+            { bandId: 'm0', index: 2, kind: 'sortedThrough' },
+            { bandId: 'm1', index: 0, kind: 'sortedThrough' },
+            { bandId: 'm1', index: 1, kind: 'sortedThrough' },
+            { bandId: 'm1', index: 2, kind: 'compare', label: '+=6' },
+          ],
+        },
+        highlights: [
+          { line: 4, colorClass: 'bg-rose-500/20', label: '2D' },
+          { line: 5, colorClass: 'bg-rose-500/20' },
+          { line: 6, colorClass: 'bg-rose-500/20' },
+          { line: 7, colorClass: 'bg-rose-500/20' },
+        ],
+      },
+      {
+        id: 's4',
+        codeLine: 6,
+        description: 'All cells visited: **1+2+3+4+5+6 = 21**.',
         memory: {
           stack: [
             { id: 'm', name: 'm', type: 'reference', refId: 'm2d' },
@@ -3152,13 +4192,37 @@ public class ArrayListAndList {
           ],
           staticArea: [],
         },
+        arrayTrace: {
+          layout: 'grid2d',
+          caption:
+            'Full walk **(0,0)…(0,2)** then **(1,0)…(1,2)** — inner bound **m[r].length** allowed three columns on each row.',
+          bands: [
+            { id: 'm0', label: 'm[0] (int[])', values: [1, 2, 3] },
+            { id: 'm1', label: 'm[1] (int[])', values: [4, 5, 6] },
+          ],
+          markers: [
+            { bandId: 'm0', index: 0, kind: 'sortedThrough' },
+            { bandId: 'm0', index: 1, kind: 'sortedThrough' },
+            { bandId: 'm0', index: 2, kind: 'sortedThrough' },
+            { bandId: 'm1', index: 0, kind: 'sortedThrough' },
+            { bandId: 'm1', index: 1, kind: 'sortedThrough' },
+            { bandId: 'm1', index: 2, kind: 'compare', label: 'last' },
+          ],
+        },
         highlights: [
           { line: 4, colorClass: 'bg-rose-500/20', label: '2D' },
           { line: 5, colorClass: 'bg-rose-500/20' },
           { line: 6, colorClass: 'bg-rose-500/20' },
           { line: 7, colorClass: 'bg-rose-500/20' },
-          { line: 8, colorClass: 'bg-rose-500/20' },
         ],
+      },
+    ],
+    concepts: [
+      {
+        id: 'c-6-lib-2d-1',
+        name: 'Row-major loops',
+        description: 'for r, then for c < m[r].length—sums and searches follow this skeleton.',
+        lines: [4, 5, 6, 7, 8],
       },
     ],
     quiz: {
@@ -3170,13 +4234,6 @@ public class ArrayListAndList {
         'Each row can differ in length; the inner loop should run while c < grid[r].length (after r < grid.length on the outside).',
       points: 200,
     },
-    concepts: [
-      {
-        id: 'c-6-lib-2d-1',
-        name: 'Row-major loops',
-        description: 'for r, then for c < m[r].length—sums and searches follow this skeleton.',
-        lines: [4, 5, 6, 7, 8],
-      },
-    ],
-  }
+  },
+  ...lessonAdditions,
 ];

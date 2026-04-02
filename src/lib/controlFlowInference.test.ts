@@ -6,6 +6,7 @@ import {
   computeFactorialUnwindLabels,
   computeRecursiveChainFinalReturnValue,
   computeSumToUnwindLabels,
+  inferLessonRecursionTrace,
   inferMaxUniformNumericRecursionFromLesson,
   inferRecursionUnwindStyle,
   isUniformRecursionChain,
@@ -122,6 +123,30 @@ describe('controlFlowInference', () => {
     });
   });
 
+  it('inferLessonRecursionTrace picks generic when recursionCallStack is multi-arg', () => {
+    const lesson: Lesson = {
+      id: 'bs',
+      title: 'B',
+      chapter: 'c',
+      code: '',
+      steps: [
+        { id: 'a', codeLine: 0, description: '', memory: { stack: [], heap: [], staticArea: [] } },
+        {
+          id: 'b',
+          codeLine: 0,
+          description: '',
+          memory: { stack: [], heap: [], staticArea: [] },
+          recursionCallStack: ['find(0,6)', 'find(4,6)'],
+        },
+      ],
+    };
+    expect(inferLessonRecursionTrace(lesson)).toEqual({
+      traceKind: 'generic',
+      methodName: 'find',
+      peakSignatures: ['find(0,6)', 'find(4,6)'],
+    });
+  });
+
   it('buildRecursionDiagramState tracks unwind and final return', () => {
     const lesson: Lesson = {
       id: 'f',
@@ -166,7 +191,7 @@ describe('controlFlowInference', () => {
         },
       ],
     };
-    const trace = { methodName: 'fact', nValues: [2, 1, 0] };
+    const trace = { traceKind: 'numeric' as const, methodName: 'fact', nValues: [2, 1, 0] };
     expect(buildRecursionDiagramState(lesson, 1, trace).forwardEdgeCount).toBe(0);
     expect(buildRecursionDiagramState(lesson, 2, trace).forwardEdgeCount).toBe(2);
     const mid = buildRecursionDiagramState(lesson, 3, trace);

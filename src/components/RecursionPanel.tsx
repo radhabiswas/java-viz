@@ -3,57 +3,100 @@ import type { Lesson, MemoryState } from '../types';
 import { cn } from '../lib/utils';
 import {
   buildRecursionDiagramState,
-  inferMaxUniformNumericRecursionFromLesson,
+  inferLessonRecursionTrace,
   inferRecursionUnwindStyle,
-  numericArgsFromSignatures,
-  parseCallFrames,
-  traceFromCurrentFrames,
+  inferMaxUniformNumericRecursionFromLesson,
 } from '../lib/controlFlowInference';
 import RecursionCallStackColumn from './RecursionCallStackColumn';
 import RecursionFlowDiagram from './RecursionFlowDiagram';
 import { Repeat } from 'lucide-react';
 
+/** Labels for stack + diagram: prefer explicit Step.recursionCallStack, else memory frame rows, else numeric peak prefix. */
+function callSignaturesForStep(
+  lesson: Lesson,
+  stepIndex: number,
+  trace: NonNullable<ReturnType<typeof inferLessonRecursionTrace>>,
+): string[] {
+  const step = lesson.steps[stepIndex];
+  if (!step) return [];
+  if (trace.traceKind === 'generic') {
+    if (step.recursionCallStack?.length) return step.recursionCallStack;
+    const frames = step.memory.stack
+      .map((v) => v.name?.trim() ?? '')
+      .filter((name) => /^[A-Za-z_]\w*\([^)]*\)$/.test(name));
+    if (frames.length >= 2) return frames;
+    return trace.peakSignatures;
+  }
+  return trace.nValues.map((n) => `${trace.methodName}(${n})`);
+}
+
 export default function RecursionPanel({
   lesson,
   currentStepIndex,
-  memoryState,
+  memoryState: _memoryState,
   embedded = false,
 }: {
   lesson: Lesson;
   currentStepIndex: number;
+  /** Present for API consistency; recursion labels come from lesson step data. */
   memoryState: MemoryState;
   embedded?: boolean;
 }) {
-  const callFrames = useMemo(() => parseCallFrames(memoryState.stack), [memoryState.stack]);
-
-  const diagramTrace = useMemo(() => {
-    const fromLesson = inferMaxUniformNumericRecursionFromLesson(lesson);
-    if (fromLesson) return fromLesson;
-    return traceFromCurrentFrames(callFrames);
-  }, [lesson, callFrames]);
-
-  /** Only the innermost frame’s argument is “active” so the diagram advances one highlight per step. */
-  const activeArgs = useMemo(() => {
-    const nums = numericArgsFromSignatures(callFrames);
-    if (!nums?.length || diagramTrace === null) return new Set<number>();
-    if (!callFrames.length || callFrames[0].methodName !== diagramTrace.methodName) return new Set<number>();
-    const inner = nums[nums.length - 1];
-    return new Set([inner]);
-  }, [callFrames, diagramTrace]);
+  const diagramTrace = useMemo(() => inferLessonRecursionTrace(lesson), [lesson]);
 
   const diagramState = useMemo(() => {
     if (!diagramTrace) return null;
     return buildRecursionDiagramState(lesson, currentStepIndex, diagramTrace);
   }, [lesson, currentStepIndex, diagramTrace]);
 
+  const allSignatures = useMemo(() => {
+    if (!diagramTrace || !diagramState) return [];
+    return callSignaturesForStep(lesson, currentStepIndex, diagramTrace);
+  }, [lesson, currentStepIndex, diagramTrace, diagramState]);
+
+  const stackColumnSignatures = useMemo(() => {
+    if (!diagramTrace) return [];
+    if (diagramTrace.traceKind === 'generic') {
+      return diagramTrace.peakSignatures;
+    }
+    return diagramTrace.nValues.map((n) => `${diagramTrace.methodName}(${n})`);
+  }, [diagramTrace]);
+
+  const nValuesForDiagram = useMemo(() => {
+    if (!diagramTrace) return [];
+    return diagramTrace.traceKind === 'numeric'
+      ? diagramTrace.nValues
+      : diagramTrace.peakSignatures.map((_, i) => i);
+  }, [diagramTrace]);
+
+  const circleLabels = useMemo(() => {
+    if (!diagramState) return [];
+    const d = diagramState.stackDepth;
+    return allSignatures.slice(0, d);
+  }, [allSignatures, diagramState]);
+
+  const unwindStyle = useMemo(() => {
+    if (!diagramTrace) return null;
+    if (diagramTrace.traceKind === 'numeric') {
+      const src = inferMaxUniformNumericRecursionFromLesson(lesson);
+      return src ? inferRecursionUnwindStyle(src.nValues) : null;
+    }
+    const lab = lesson.recursionUnwindReturnLabels;
+    const L = diagramTrace.peakSignatures.length;
+    if (lab && lab.length === L - 1 && L >= 2) {
+      return { kind: 'returns' as const, labels: lab };
+    }
+    return null;
+  }, [lesson, diagramTrace]);
+
   const idPrefix = useMemo(() => `rc-${lesson.id.replace(/[^a-zA-Z0-9_-]/g, '')}`, [lesson.id]);
 
-  const unwindStyle = useMemo(
-    () => (diagramTrace ? inferRecursionUnwindStyle(diagramTrace.nValues) : null),
-    [diagramTrace],
-  );
+  const activeHighlightIndex =
+    diagramState && diagramState.stackDepth > 0 ? diagramState.stackDepth - 1 : null;
 
-  if (!diagramTrace) {
+  const variant = diagramTrace?.traceKind === 'generic' ? 'generic' : 'numeric';
+
+  if (!diagramTrace || !diagramState) {
     return (
       <div
         className={cn(
@@ -68,7 +111,7 @@ export default function RecursionPanel({
           </h3>
         </div>
         <p className="p-4 text-sm text-slate-600 dark:text-slate-400">
-          No uniform recursive call chain in this lesson.
+          No recursive call chain in this lesson.
         </p>
       </div>
     );
@@ -87,8 +130,8 @@ export default function RecursionPanel({
           Recursion
         </h3>
         <p className="mt-1.5 text-xs font-medium leading-snug text-slate-600 dark:text-slate-400">
-          Amber ring = innermost active call. One frame per step down; one return arc per step up. Stack list: top = stack
-          top; Memory: outer-first.
+          Amber ring = innermost active call. One frame per step down; one return arc per step up (when unwind labels
+          apply). Stack list: top = stack top; Memory: outer-first.
         </p>
       </div>
 
@@ -97,10 +140,11 @@ export default function RecursionPanel({
           <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center sm:max-w-[58%]">
             <RecursionFlowDiagram
               methodName={diagramTrace.methodName}
-              nValues={diagramTrace.nValues}
-              activeArgs={activeArgs}
+              variant={variant}
+              nValues={nValuesForDiagram}
+              circleLabels={circleLabels}
+              activeHighlightIndex={activeHighlightIndex}
               idPrefix={idPrefix}
-              stackDepth={diagramState.stackDepth}
               forwardEdgeCount={diagramState.forwardEdgeCount}
               returnEdgeCount={diagramState.returnEdgeCount}
               unwindStyle={unwindStyle}
@@ -109,8 +153,7 @@ export default function RecursionPanel({
             />
           </div>
           <RecursionCallStackColumn
-            methodName={diagramTrace.methodName}
-            nValues={diagramTrace.nValues}
+            signatures={stackColumnSignatures}
             stackDepth={diagramState.stackDepth}
             compact={false}
             className="w-full shrink-0 border-t border-slate-200/80 pt-3 dark:border-slate-600/60 sm:w-[min(42%,13.5rem)] sm:min-w-[11.5rem] sm:border-l sm:border-t-0 sm:border-slate-200/80 sm:pl-3 sm:pt-0 dark:sm:border-slate-600/60"

@@ -59,6 +59,22 @@ describe('applyImplicitThisTeachingTransform', () => {
     expect(out).toMatch(/return num \* num;/);
   });
 
+  it('does not rewrite RHS when a parameter shadows the field (setValue)', () => {
+    const src = [
+      'public class Counter {',
+      '  private int value;',
+      '',
+      '  public void setValue(int value) {',
+      '    this.value = value;',
+      '  }',
+      '}',
+    ].join('\n');
+    const out = applyImplicitThisTeachingTransform(src, 'Counter');
+    expect(out).toContain('public void setValue(Counter this, int value)');
+    expect(out).toContain('this.value = value;');
+    expect(out).not.toContain('this.value = this.value');
+  });
+
   it('does not rewrite constructor body when a parameter shadows a field', () => {
     const src = [
       'public class Student {',

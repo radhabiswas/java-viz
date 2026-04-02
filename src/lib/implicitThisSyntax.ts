@@ -97,6 +97,80 @@ export function ctorShadowsInstanceField(
   return false;
 }
 
+/** Split formal parameter list at commas not inside `()`, `<>`. */
+function splitFormalParameterSegments(inner: string): string[] {
+  const t = inner.trim();
+  if (!t) return [];
+  const parts: string[] = [];
+  let paren = 0;
+  let angle = 0;
+  let start = 0;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (c === '(') paren++;
+    else if (c === ')') paren--;
+    else if (c === '<') angle++;
+    else if (c === '>') angle = Math.max(0, angle - 1);
+    else if (c === ',' && paren === 0 && angle === 0) {
+      parts.push(t.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  parts.push(t.slice(start).trim());
+  return parts.filter(Boolean);
+}
+
+function extractFirstParenGroupContents(line: string): string | null {
+  const open = line.indexOf('(');
+  if (open < 0) return null;
+  let d = 0;
+  for (let i = open; i < line.length; i++) {
+    if (line[i] === '(') d++;
+    else if (line[i] === ')') {
+      d--;
+      if (d === 0) return line.slice(open + 1, i).trim();
+    }
+  }
+  return null;
+}
+
+/**
+ * Formal parameter simple names after `applyImplicitThisSyntax` (includes `ClassName this` receiver).
+ * Used to detect shadowing: bare `field` in that body refers to the parameter, not the field.
+ */
+export function parseInstanceMethodParameterNames(line: string, className: string): string[] {
+  if (/^\s*(?:public|private|protected)\s+static\b/.test(line)) return [];
+  const cn = escapeRe(className);
+  if (new RegExp(`^\\s*public\\s+${cn}\\s*\\(`).test(line)) return [];
+  if (
+    !/^\s*(?:public|private|protected)\s+(?!static\b)(?:final\s+)?\w+\s+\w+\s*\(/.test(line)
+  ) {
+    return [];
+  }
+  const inner = extractFirstParenGroupContents(line);
+  if (inner === null) return [];
+  const segs = splitFormalParameterSegments(inner);
+  const names: string[] = [];
+  for (let s = 0; s < segs.length; s++) {
+    const seg = segs[s].trim();
+    if (s === 0 && new RegExp(`^${cn}\\s+this$`).test(seg)) continue;
+    const toks = seg.split(/\s+/);
+    const last = toks[toks.length - 1];
+    if (last && /^[a-zA-Z_]\w*$/.test(last)) names.push(last);
+  }
+  return names;
+}
+
+/** Field names that share a simple name with a formal parameter (bare identifier = parameter in Java). */
+function shadowedInstanceFieldsOnMethodLine(
+  line: string,
+  className: string,
+  fields: string[],
+): Set<string> {
+  const params = parseInstanceMethodParameterNames(line, className);
+  return new Set(fields.filter((f) => params.includes(f)));
+}
+
 /**
  * `true` on lines inside instance methods or constructors where bare field names should become `this.field`.
  * Skips static methods. Skips constructor bodies when ctorShadowSkip (parameter shadows a field).
@@ -105,7 +179,7 @@ export function ctorShadowsInstanceField(
 export function computeInstanceBodyPrefixLines(
   lines: string[],
   className: string,
-  _fields: string[],
+  fields: string[],
   ctorShadowSkip: boolean,
 ): boolean[] {
   const n = lines.length;
@@ -139,7 +213,9 @@ export function computeInstanceBodyPrefixLines(
         /^\s*(?:public|private|protected)\s+(?!static\b)(?:final\s+)?\w+\s+\w+\s*\(/.test(line);
 
       if (isStatic || isCtor || isInst) {
-        const skip = isStatic ? true : isCtor ? ctorShadowSkip : false;
+        const instanceParamShadowsField =
+          isInst && shadowedInstanceFieldsOnMethodLine(line, className, fields).size > 0;
+        const skip = isStatic ? true : isCtor ? ctorShadowSkip : instanceParamShadowsField;
         if (line.includes('{')) {
           const depthAfter = depth + braceDeltaLine(line);
           stack.push({ bodyMinDepth: depthAfter, skip });
@@ -195,6 +271,7 @@ function maybePrefixOneLineMethodBody(
     /^\s*(?:public|private|protected)\s+(?!static\b)(?:final\s+)?\w+\s+\w+\s*\(/.test(line);
   if (!isCtor && !isInst) return line;
   if (isCtor && ctorShadowSkip) return line;
+  if (isInst && shadowedInstanceFieldsOnMethodLine(line, className, fieldNames).size > 0) return line;
   return prefixFieldsInFirstBalancedBlock(line, fieldNames);
 }
 
