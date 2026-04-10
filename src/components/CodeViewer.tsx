@@ -30,6 +30,8 @@ export default function CodeViewer({
   codeNav,
   onNavigateToSymbol,
   onSelectedFileChange,
+  /** FRQ implementation workspace: use `Concept.implementationLines` when present. */
+  preferImplementationConceptLines = false,
 }: {
   code: string;
   files?: CodeFile[];
@@ -39,6 +41,7 @@ export default function CodeViewer({
   /** Reports the active tab so “Modify code” can export a single .java file. */
   onSelectedFileChange?: (fileName: string) => void;
   activeConcept?: Concept | null;
+  preferImplementationConceptLines?: boolean;
   /** Increment key to switch tab from lesson “open definition” links without changing step. */
   fileTabRequest?: { file: string; key: number; line?: number } | null;
   codeNav?: CodeNavTarget[];
@@ -354,6 +357,7 @@ export default function CodeViewer({
             step={step}
             hasFiles={!!hasFiles}
             activeConcept={activeConcept ?? null}
+            preferImplementationConceptLines={preferImplementationConceptLines}
           />
         ) : (
           <SyntaxHighlighter
@@ -389,8 +393,12 @@ export default function CodeViewer({
                   if (fileConcept && fileConcept.lines.includes(index)) {
                     isConceptLine = true;
                   }
-                } else if (!hasFiles && activeConcept.lines && activeConcept.lines.includes(index)) {
-                  isConceptLine = true;
+                } else if (!hasFiles) {
+                  const lineSet =
+                    preferImplementationConceptLines && activeConcept.implementationLines?.length
+                      ? activeConcept.implementationLines
+                      : activeConcept.lines;
+                  if (lineSet?.includes(index)) isConceptLine = true;
                 }
               }
 

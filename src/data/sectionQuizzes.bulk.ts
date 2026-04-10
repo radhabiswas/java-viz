@@ -81,7 +81,7 @@ function checkpoints(
 export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
   '1-2': checkpoints('1-2', [
     {
-      title: 'Section Check · new and heap',
+      title: 'new and heap',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -97,7 +97,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Aliasing before the call',
+      title: 'Aliasing before the call',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -113,7 +113,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Mutation through either reference',
+      title: 'Mutation through either reference',
       checkpointStepIndex: 6,
       questions: [
         mcq(
@@ -137,7 +137,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '1-3': checkpoints('1-3', [
     {
-      title: 'Section Check · Two songs on the heap',
+      title: 'Two songs on the heap',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -153,7 +153,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Accessor returns new String',
+      title: 'Accessor returns new String',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -174,7 +174,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Reassigning currentlyPlaying',
+      title: 'Reassigning currentlyPlaying',
       checkpointStepIndex: 5,
       questions: [
         mcq(
@@ -193,7 +193,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '1-4': checkpoints('1-4', [
     {
-      title: 'Section Check · null reference',
+      title: 'null reference',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -214,7 +214,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Alias then mutate',
+      title: 'Alias then mutate',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -230,7 +230,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Clearing one reference',
+      title: 'Clearing one reference',
       checkpointStepIndex: 5,
       questions: [
         mcq(
@@ -249,7 +249,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '1-5': checkpoints('1-5', [
     {
-      title: 'Section Check · Primitive copies from getters',
+      title: 'Primitive copies from getters',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -265,7 +265,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · boolean from instance method',
+      title: 'boolean from instance method',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -281,7 +281,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Garbage after reassignment',
+      title: 'Garbage after reassignment',
       checkpointStepIndex: 5,
       questions: [
         mcq(
@@ -305,7 +305,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-1': checkpoints('4-1', [
     {
-      title: 'Section Check · Static vs instance storage',
+      title: 'Static vs instance storage',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -321,7 +321,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Instance fields',
+      title: 'Instance fields',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -337,7 +337,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Instance method and this',
+      title: 'Instance method and this',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -356,7 +356,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-2': checkpoints('4-2', [
     {
-      title: 'Section Check · Constructor parameters as locals',
+      title: 'Constructor parameters as locals',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -372,7 +372,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Fields after this assign',
+      title: 'Fields after this assign',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -388,7 +388,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · study() mutates receiver',
+      title: 'study() mutates receiver',
       checkpointStepIndex: 6,
       questions: [
         mcq(
@@ -407,7 +407,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '5-1': checkpoints('5-1', [
     {
-      title: 'Section Check · Parameter amount',
+      title: 'Parameter amount',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -423,7 +423,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Locals vanish',
+      title: 'Locals vanish',
       checkpointStepIndex: 6,
       questions: [
         mcq(
@@ -439,7 +439,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Return value into Main',
+      title: 'Return value into Main',
       checkpointStepIndex: 7,
       questions: [
         mcq(
@@ -458,7 +458,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '5-2': checkpoints('5-2', [
     {
-      title: 'Section Check · Static call frame',
+      title: 'Static call frame',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -474,7 +474,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Instance method this',
+      title: 'Instance method this',
       checkpointStepIndex: 7,
       questions: [
         mcq(
@@ -490,7 +490,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · After both calls',
+      title: 'After both calls',
       checkpointStepIndex: 9,
       questions: [
         mcq(
@@ -509,7 +509,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '6-1': checkpoints('6-1', [
     {
-      title: 'Section Check · Array reference',
+      title: 'Array reference',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -525,7 +525,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Default initialization',
+      title: 'Default initialization',
       checkpointStepIndex: 1,
       questions: [
         fill(
@@ -541,7 +541,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · After fills',
+      title: 'After fills',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -560,7 +560,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '10-1': checkpoints('10-1', [
     {
-      title: 'Section Check · Stack growth',
+      title: 'Stack growth',
       checkpointStepIndex: 6,
       questions: [
         mcq(
@@ -576,7 +576,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Unwinding',
+      title: 'Unwinding',
       checkpointStepIndex: 10,
       questions: [
         mcq(
@@ -592,7 +592,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Final result',
+      title: 'Final result',
       checkpointStepIndex: 11,
       questions: [
         fill(
@@ -611,7 +611,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '2-1': checkpoints('2-1', [
     {
-      title: 'Section Check · Loop locals on stack',
+      title: 'Loop locals on stack',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -627,7 +627,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Accumulator update',
+      title: 'Accumulator update',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -643,7 +643,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Scope after loop',
+      title: 'Scope after loop',
       checkpointStepIndex: 8,
       questions: [
         mcq(
@@ -662,7 +662,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '2-2': checkpoints('2-2', [
     {
-      title: 'Section Check · += rewrites the slot',
+      title: '+= rewrites the slot',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -678,7 +678,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Post-increment',
+      title: 'Post-increment',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -694,7 +694,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · *= on another local',
+      title: '*= on another local',
       checkpointStepIndex: 5,
       questions: [
         mcq(
@@ -713,7 +713,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-3': checkpoints('4-3', [
     {
-      title: 'Section Check · Empty list object',
+      title: 'Empty list object',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -729,7 +729,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · add stores reference',
+      title: 'add stores reference',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -745,7 +745,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Second element',
+      title: 'Second element',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -764,7 +764,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-4': checkpoints('4-4', [
     {
-      title: 'Section Check · data and target',
+      title: 'data and target',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -780,7 +780,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Search progress',
+      title: 'Search progress',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -796,7 +796,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Final idx',
+      title: 'Final idx',
       checkpointStepIndex: 4,
       questions: [
         fill(
@@ -815,7 +815,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-3-1': checkpoints('ap-3-1', [
     {
-      title: 'Section Check · Relational to boolean',
+      title: 'Relational to boolean',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -831,7 +831,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Compound condition',
+      title: 'Compound condition',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -847,7 +847,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Mutation in branch',
+      title: 'Mutation in branch',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -866,7 +866,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-3-2': checkpoints('ap-3-2', [
     {
-      title: 'Section Check · Literal interning',
+      title: 'Literal interning',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -882,7 +882,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · new String',
+      title: 'new String',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -898,7 +898,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · equals',
+      title: 'equals',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -917,7 +917,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-2-1': checkpoints('ap-2-1', [
     {
-      title: 'Section Check · Immutable receiver',
+      title: 'Immutable receiver',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -933,7 +933,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · length primitive',
+      title: 'length primitive',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -952,7 +952,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-4-1': checkpoints('ap-4-1', [
     {
-      title: 'Section Check · Accumulator pattern',
+      title: 'Accumulator pattern',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -968,7 +968,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Guard',
+      title: 'Guard',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -987,7 +987,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-5-1': checkpoints('ap-5-1', [
     {
-      title: 'Section Check · Constructor effect',
+      title: 'Constructor effect',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1003,7 +1003,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Mutator',
+      title: 'Mutator',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1019,7 +1019,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Accessor copy',
+      title: 'Accessor copy',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -1038,7 +1038,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-6-1': checkpoints('ap-6-1', [
     {
-      title: 'Section Check · length vs field',
+      title: 'length vs field',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1054,7 +1054,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Traversal sum',
+      title: 'Traversal sum',
       checkpointStepIndex: 8,
       questions: [
         mcq(
@@ -1073,7 +1073,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-7-1': checkpoints('ap-7-1', [
     {
-      title: 'Section Check · set does not add',
+      title: 'set does not add',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -1089,7 +1089,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · remove shifts',
+      title: 'remove shifts',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -1108,7 +1108,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-8-1': checkpoints('ap-8-1', [
     {
-      title: 'Section Check · Row arrays',
+      title: 'Row arrays',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1124,7 +1124,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Row-major sum',
+      title: 'Row-major sum',
       checkpointStepIndex: 6,
       questions: [
         mcq(
@@ -1143,7 +1143,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-9-1': checkpoints('ap-9-1', [
     {
-      title: 'Section Check · Widening reference',
+      title: 'Widening reference',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1159,7 +1159,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Dynamic dispatch',
+      title: 'Dynamic dispatch',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1178,7 +1178,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-10-1': checkpoints('ap-10-1', [
     {
-      title: 'Section Check · Base frame',
+      title: 'Base frame',
       checkpointStepIndex: 4,
       questions: [
         mcq(
@@ -1194,7 +1194,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Recursive decomposition',
+      title: 'Recursive decomposition',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1210,7 +1210,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Closed form',
+      title: 'Closed form',
       checkpointStepIndex: 8,
       questions: [
         fill(
@@ -1229,34 +1229,101 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '6-lib-arraylist': checkpoints('6-lib-arraylist', [
     {
-      title: 'Section Check · API shape',
-      checkpointStepIndex: 1,
+      title: 'get after add',
+      checkpointStepIndex: 3,
       questions: [
         mcq(
           'sq-lib-al-a',
-          'nums.get(0) after two adds reads:',
-          ['20', '10', 'size', 'error'],
+          'nums.get(0) after add(10) and add(20) reads:',
+          ['20', '10', 'void', 'null'],
           1,
-          'Index 0 is first element.',
-          1,
-          'Diagram shows x=10 from first slot.',
+          'Index 0 is the first element.',
+          3,
+          'x = 10 from slot [0].',
           [8],
+        ),
+        mcq(
+          'sq-lib-al-a2',
+          'nums.set(1, 99) with two elements changes:',
+          ['Only logical length', 'The value at index 1', 'The reference nums', 'The type parameter'],
+          1,
+          'set(i, v) replaces position i without changing size.',
+          4,
+          'Diagram shows [1] becomes 99.',
+          [9],
         ),
       ],
     },
     {
-      title: 'Section Check · Interface variable',
-      checkpointStepIndex: 3,
+      title: 'remove and size',
+      checkpointStepIndex: 6,
+      questions: [
+        mcq(
+          'sq-lib-al-rm',
+          'After remove(0) when the list held [10, 99], the remaining element at index 0 is:',
+          ['10', '99', 'empty slot', 'null list'],
+          1,
+          'Elements shift toward index 0.',
+          6,
+          'Single slot [0]=99, size 1.',
+          [10],
+        ),
+        fill(
+          'sq-lib-al-sz',
+          'The number of elements is read with nums.[blank]() (method name).',
+          'method',
+          ['size'],
+          'Arrays use .length; ArrayList uses .size().',
+          6,
+          'size local equals 1.',
+          [11],
+        ),
+      ],
+    },
+    {
+      title: 'List vs ArrayList',
+      checkpointStepIndex: 8,
       questions: [
         mcq(
           'sq-lib-al-b',
-          '`List<String> words = new ArrayList<>();` — the heap object is:',
-          ['Interface List', 'Concrete ArrayList instance', 'String', 'null'],
+          'The variable `List<String> words` references an object whose runtime class is best described as:',
+          ['Abstract interface only on heap', 'ArrayList (concrete)', 'String[]', 'java.lang.List bytecode'],
           1,
-          'The runtime object is the constructed class; the variable type is interface.',
-          3,
-          'words → ArrayList backing storage.',
-          [17],
+          'new ArrayList<>() constructs the concrete instance.',
+          8,
+          'Three String refs in ArrayList cells.',
+          [16],
+        ),
+      ],
+    },
+    {
+      title: 'Reverse via get/set',
+      checkpointStepIndex: 13,
+      questions: [
+        mcq(
+          'sq-lib-al-rev',
+          'Inside reverse, list.set(i, list.get(n - 1 - i)) mainly:',
+          [
+            'Allocates a brand-new ArrayList',
+            'Copies a reference from one index into another',
+            'Deletes the String objects',
+            'Swaps stack frames only',
+          ],
+          1,
+          'List cells hold references; set stores whichever reference get returned.',
+          13,
+          'After both sets, order is blue, green, red.',
+          [27],
+        ),
+        mcq(
+          'sq-lib-al-front',
+          'After reverse(words), words.get(0) returns:',
+          ['"red"', '"green"', '"blue"', 'IndexOutOfBoundsException'],
+          2,
+          'Former last element moved to index 0.',
+          14,
+          'front references blue String.',
+          [18],
         ),
       ],
     },
@@ -1264,34 +1331,137 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '6-lib-string': checkpoints('6-lib-string', [
     {
-      title: 'Section Check · substring bounds',
-      checkpointStepIndex: 1,
+      title: 'Literal pool vs new String',
+      checkpointStepIndex: 3,
       questions: [
         mcq(
-          'sq-lib-st-a',
-          'substring(1, 4) on "abcdef" yields length:',
-          ['4', '3', '6', '1'],
+          'sq-lib-st-p1',
+          'In the diagram, s1 and s2 both reference `"abc"` as literals. Why do they share one heap card while s3 does not?',
+          [
+            'Compiler error forbids two literals',
+            'Identical literals are often interned to one pooled instance; new String(...) allocates a separate object',
+            'new String cannot take a literal argument',
+            'Only static fields use the pool',
+          ],
           1,
-          'End index exclusive → three characters.',
+            'The pool reuses one String for the same literal text; the constructor always builds another object with the same characters.',
+          3,
+          'Two arrows into String (literal pool); s3 → String (heap / new).',
+          [3, 4, 5],
+        ),
+        mcq(
+          'sq-lib-st-p2',
+          'If two variables hold the same literal text, == between them is:',
+          [
+            'Always false',
+            'Guaranteed true only when they reference the same pooled instance (common for identical literals)',
+            'Same as .equals in every case',
+            'Undefined until garbage collection',
+          ],
           1,
-          'piece references "bcd" on heap.',
+            '== compares references. Matching literals often share one reference, but never assume for arbitrary strings—use equals for content.',
+          3,
+          's1 and s2 → same pooled id in the snapshot.',
+          [3, 4],
+        ),
+      ],
+    },
+    {
+      title: '== vs .equals',
+      checkpointStepIndex: 6,
+      questions: [
+        mcq(
+          'sq-lib-st-e1',
+          'pooledVsNewEqual is false because:',
+          [
+            'The texts differ',
+            's1 and s3 reference different String objects even though the character sequence matches',
+            'equals was not called',
+            'The pool rejects new String',
+          ],
+          1,
+            '== is reference identity; same text can live in two objects (literal pool vs heap).',
+          6,
+          'pooledVsNewEqual primitive false.',
+          [7],
+        ),
+        fill(
+          'sq-lib-st-e2',
+          'To test whether two String variables hold the same character sequence, use [blank] (method name, camelCase).',
+          'method',
+          ['equals'],
+            'equals compares value; == compares whether references point at the same object.',
+          6,
+          'textMatches from s1.equals(s3).',
           [8],
         ),
       ],
     },
     {
-      title: 'Section Check · equals vs content',
-      checkpointStepIndex: 1,
+      title: 'split and String[]',
+      checkpointStepIndex: 10,
       questions: [
         mcq(
-          'sq-lib-st-b',
-          'text.equals("abcdef") compares:',
-          ['Reference identity only', 'Character sequence', 'memory addresses of locals', 'hash of stack'],
+          'sq-lib-st-a1',
+          'After `String[] parts = path.split("-")` for "a-b-c", parts.length equals:',
+          ['2', '3', '4', '5'],
           1,
-          'equals checks value equality for String.',
+            'Split yields one String per token between delimiters.',
+          10,
+          'segments = parts.length = 3.',
+          [14],
+        ),
+        mcq(
+          'sq-lib-st-a1b',
+          'Each parts[i] in the diagram is:',
+          ['A char primitive on the stack', 'A reference to a String on the heap', 'Copied into the array by value like int', 'The delimiter character'],
           1,
-          'ok primitive true in diagram.',
-          [8],
+            'String[] elements are references; token text lives in String objects.',
+          9,
+          'arrParts slots point at strTokA/B/C.',
+          [13],
+        ),
+      ],
+    },
+    {
+      title: 'Loop over tokens',
+      checkpointStepIndex: 13,
+      questions: [
+        mcq(
+          'sq-lib-st-loop',
+          'In `for (int i = 0; i < parts.length; i++)`, token = parts[i] when i = 1 refers to:',
+          ['"a"', '"b"', '"c"', 'the delimiter "-"'],
+          1,
+            'Index 1 is the second token.',
+          13,
+          'token → strTokB in the snapshot.',
+          [16],
+        ),
+      ],
+    },
+    {
+      title: 'substring and indexOf on data',
+      checkpointStepIndex: 19,
+      questions: [
+        mcq(
+          'sq-lib-st-d1',
+          'On "abcdef", substring(1, 4) returns:',
+          ['"abcd"', '"bcde"', '"bcd"', '"abc"'],
+          2,
+            'Indices 1 inclusive through 4 exclusive → positions 1,2,3 → "bcd".',
+          19,
+          'slice node value "bcd".',
+          [23],
+        ),
+        mcq(
+          'sq-lib-st-d2',
+          'data.indexOf("cd") reports:',
+          ['0', '1', '2', '3'],
+          2,
+            'Substring "cd" begins at index 2.',
+          20,
+          'atCd primitive 2.',
+          [24],
         ),
       ],
     },
@@ -1299,34 +1469,85 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '6-lib-math': checkpoints('6-lib-math', [
     {
-      title: 'Section Check · Static Math',
-      checkpointStepIndex: 1,
+      title: 'Math.random range',
+      checkpointStepIndex: 4,
+      questions: [
+        mcq(
+          'sq-lib-m-r1',
+          'Math.random() returns a double in which interval?',
+          ['[0.0, 1.0] inclusive both ends', '[0.0, 1.0) — includes 0.0, never reaches 1.0', '(0.0, 1.0) open on both', 'Only 0.0 or 1.0'],
+          1,
+            'API contract: uniform in [0.0, 1.0); multiply and cast to build integer ranges.',
+          4,
+          'u is a sample like 0.37.',
+          [3],
+        ),
+        mcq(
+          'sq-lib-m-r2',
+          'For inclusive integers from lo through hi, which scaling uses the correct span so hi can appear?',
+          [
+            'lo + (int)(Math.random() * (hi - lo))',
+            'lo + (int)(Math.random() * (hi - lo + 1))',
+            '(int)(Math.random() * hi)',
+            'lo + hi * Math.random() always',
+          ],
+          1,
+            'Multiply by (hi - lo + 1) so there are hi - lo + 1 outcomes from 0 through hi - lo; adding lo maps to lo..hi.',
+          4,
+          'inRange line uses (hi - lo + 1).',
+          [6],
+        ),
+      ],
+    },
+    {
+      title: 'pow, sqrt, min, max',
+      checkpointStepIndex: 9,
       questions: [
         mcq(
           'sq-lib-m-a',
-          'Math.pow(2,4) in the diagram contributes which primitive to the stack view?',
-          ['2', '4', '16', 'double only error'],
-          2,
-          'pow returns double; here shown as 16 in teaching snapshot.',
+          'Math.pow(2, 4) evaluates to:',
+          ['8', '16', '6', '2.0 only'],
           1,
-          'pow slot equals 16 among Math locals.',
+            'Exponentiation: 2^4 = 16 (as double).',
+          2,
+          'pow local 16.',
+          [8],
+        ),
+        mcq(
+          'sq-lib-m-s1',
+          'Math.sqrt(9.0) yields:',
+          ['81', '3', '4.5', '-3'],
+          1,
+            'Square root of nine is three.',
+          9,
+          'root primitive 3.',
           [9],
         ),
       ],
     },
     {
-      title: 'Section Check · parseInt',
-      checkpointStepIndex: 2,
+      title: 'Wrapper limits & parsing',
+      checkpointStepIndex: 13,
       questions: [
         mcq(
           'sq-lib-m-b',
-          'Integer.parseInt("100") produces:',
-          ['String "100"', 'int 100 on stack', 'double', 'Boolean'],
+          'Integer.parseInt("100") stores in fromStr:',
+          ['A String wrapper object on stack', 'Primitive int 100', 'double 100.0 only', 'boolean'],
           1,
-          'Parsing decodes text to primitive int.',
-          2,
+            'parseInt decodes decimal text into a primitive int (or throws NumberFormatException).',
+          13,
           'fromStr primitive 100.',
-          [15],
+          [14],
+        ),
+        fill(
+          'sq-lib-m-w1',
+          'The largest int constant is Integer.[blank]_VALUE.',
+          'name',
+          ['MAX'],
+            'MAX_VALUE is 2^31−1; MIN_VALUE is −2^31.',
+          13,
+          'imax holds 2147483647.',
+          [12],
         ),
       ],
     },
@@ -1334,35 +1555,75 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '6-lib-2d': checkpoints('6-lib-2d', [
     {
-      title: 'Section Check · Row sum',
-      checkpointStepIndex: 4,
+      title: 'Sum one row',
+      checkpointStepIndex: 3,
       questions: [
         mcq(
-          'sq-lib-2d-a',
-          'The nested loops sum all entries to:',
-          ['15', '21', '18', '6'],
+          'sq-lib-2d-row',
+          'The loop `for (c = 0; c < m[0].length; c++)` adds every element of:',
+          ['Column 0 only', 'Row 0 only', 'Both rows at once', 'The diagonal'],
           1,
-          '1..6 totals 21.',
-          4,
-            'total=21 next to m reference.',
-          [6],
+          'Fixed row index 0; c walks columns.',
+          3,
+          'rowSum ends at 6 = 1+2+3.',
+          [5],
+        ),
+        fill(
+          'sq-lib-2d-rowb',
+          'To visit all cells in row k, the inner bound is c < m[[blank]].length',
+          'index',
+          ['k'],
+          'Use the row index you are scanning.',
+          3,
+          'Lesson uses m[0] for the first row.',
+          [4],
         ),
       ],
     },
-    /** second checkpoint: repeat row-major concept with fill */
     {
-      title: 'Section Check · Inner bound',
-      checkpointStepIndex: 2,
+      title: 'Sum one column',
+      checkpointStepIndex: 5,
       questions: [
-        fill(
-          'sq-lib-2d-b',
-          'Inner loop uses c < m[r].[blank]',
-          'property',
-          ['length'],
-          'Each row array has its own length.',
-          2,
-          'Traversal bound tied to m[r].length.',
-          [5],
+        mcq(
+          'sq-lib-2d-col',
+          'For `colSum += m[r][1]`, when r runs 0..m.length-1, you sum:',
+          ['Row 1 entirely', 'Column index 1 in each row', 'Only m[1][1]', 'The main diagonal'],
+          1,
+          'Second index fixed; first index walks rows.',
+          5,
+          '2 + 5 = 7 in the diagram.',
+          [9],
+        ),
+      ],
+    },
+    {
+      title: 'Full grid',
+      checkpointStepIndex: 8,
+      questions: [
+        mcq(
+          'sq-lib-2d-a',
+          'After both nested loops, all entries sum to:',
+          ['15', '21', '18', '6'],
+          1,
+          '1+2+3+4+5+6 = 21.',
+          8,
+          'all = 21 next to m.',
+          [14],
+        ),
+        mcq(
+          'sq-lib-2d-inner',
+          'Why is `c < m[r].length` preferred over `c < m[0].length` for every row?',
+          [
+            'They are always identical',
+            'Rows can be ragged (different lengths)',
+            'm[0].length is illegal',
+            'Compiler requires column-first',
+          ],
+          1,
+          'Each row array can have its own length.',
+          8,
+          'Inner header uses m[r].length.',
+          [13],
         ),
       ],
     },
@@ -1370,7 +1631,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-0-1': checkpoints('ap-0-1', [
     {
-      title: 'Section Check · Entry point',
+      title: 'Entry point',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1386,7 +1647,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · println types',
+      title: 'println types',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -1405,7 +1666,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-0-2': checkpoints('ap-0-2', [
     {
-      title: 'Section Check · Scanner on heap',
+      title: 'Scanner on heap',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1421,7 +1682,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · nextInt copy',
+      title: 'nextInt copy',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1440,7 +1701,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-3-3': checkpoints('ap-3-3', [
     {
-      title: 'Section Check · && short-circuit',
+      title: '&& short-circuit',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1456,7 +1717,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · || short-circuit',
+      title: '|| short-circuit',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -1475,7 +1736,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-3-4': checkpoints('ap-3-4', [
     {
-      title: 'Section Check · Truth stack',
+      title: 'Truth stack',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1491,7 +1752,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · De Morgan equality',
+      title: 'De Morgan equality',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -1510,7 +1771,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '2-3': checkpoints('2-3', [
     {
-      title: 'Section Check · Nested indices',
+      title: 'Nested indices',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1526,7 +1787,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Product of bounds',
+      title: 'Product of bounds',
       checkpointStepIndex: 4,
       questions: [
         fill(
@@ -1545,8 +1806,8 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '5-3': checkpoints('5-3', [
     {
-      title: 'Section Check · Shadowing',
-      checkpointStepIndex: 2,
+      title: 'Shadowing',
+      checkpointStepIndex: 3,
       questions: [
         mcq(
           'sq-53-a',
@@ -1554,15 +1815,15 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
           ['The instance field', 'The int parameter local', 'this', 'static'],
           1,
           'Parameter hides field name in its block.',
-          2,
-          'parameter slot value=3.',
-          [9],
+          3,
+          'parameter slot value=3 on assignment line.',
+          [8],
         ),
       ],
     },
     {
-      title: 'Section Check · Field write',
-      checkpointStepIndex: 3,
+      title: 'Field write',
+      checkpointStepIndex: 4,
       questions: [
         mcq(
           'sq-53-b',
@@ -1570,9 +1831,9 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
           ['The parameter only', 'The heap object’s value field', 'Main’s v', 'String pool'],
           1,
           'this selects instance storage.',
-          3,
+          4,
           'ctr1 field becomes 3.',
-          [10],
+          [8],
         ),
       ],
     },
@@ -1580,7 +1841,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-5': checkpoints('4-5', [
     {
-      title: 'Section Check · Bounds',
+      title: 'Bounds',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1596,7 +1857,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Discard half',
+      title: 'Discard half',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1615,7 +1876,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-6': checkpoints('4-6', [
     {
-      title: 'Section Check · min index',
+      title: 'min index',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1631,7 +1892,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Swap effect',
+      title: 'Swap effect',
       checkpointStepIndex: 6,
       questions: [
         mcq(
@@ -1650,7 +1911,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-7': checkpoints('4-7', [
     {
-      title: 'Section Check · Key local',
+      title: 'Key local',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1666,7 +1927,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Sorted prefix',
+      title: 'Sorted prefix',
       checkpointStepIndex: 5,
       questions: [
         mcq(
@@ -1685,7 +1946,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '4-8': checkpoints('4-8', [
     {
-      title: 'Section Check · No index var',
+      title: 'No index var',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -1703,7 +1964,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Sum result',
+      title: 'Sum result',
       checkpointStepIndex: 8,
       questions: [
         fill(
@@ -1724,7 +1985,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-9-2': checkpoints('ap-9-2', [
     {
-      title: 'Section Check · Two objects',
+      title: 'Two objects',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1740,7 +2001,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · equals vs ==',
+      title: 'equals vs ==',
       checkpointStepIndex: 3,
       questions: [
         mcq(
@@ -1759,7 +2020,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-10-2': checkpoints('ap-10-2', [
     {
-      title: 'Section Check · First probe',
+      title: 'First probe',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1775,7 +2036,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Missing value',
+      title: 'Missing value',
       checkpointStepIndex: 7,
       questions: [
         mcq(
@@ -1794,7 +2055,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-10-2-found': checkpoints('ap-10-2-found', [
     {
-      title: 'Section Check · Narrowing to the hit',
+      title: 'Narrowing to the hit',
       checkpointStepIndex: 5,
       questions: [
         mcq(
@@ -1810,7 +2071,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Return value',
+      title: 'Return value',
       checkpointStepIndex: 7,
       questions: [
         mcq(
@@ -1829,7 +2090,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   'ap-10-3': checkpoints('ap-10-3', [
     {
-      title: 'Section Check · Output buffer',
+      title: 'Output buffer',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1845,7 +2106,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Merge outcome',
+      title: 'Merge outcome',
       checkpointStepIndex: 9,
       questions: [
         mcq(
@@ -1864,7 +2125,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
 
   '6-lib-scanner': checkpoints('6-lib-scanner', [
     {
-      title: 'Section Check · String source',
+      title: 'String source',
       checkpointStepIndex: 1,
       questions: [
         mcq(
@@ -1880,7 +2141,7 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
       ],
     },
     {
-      title: 'Section Check · Tokens',
+      title: 'Tokens',
       checkpointStepIndex: 2,
       questions: [
         mcq(
@@ -1892,6 +2153,51 @@ export const bulkSectionQuizzes: Record<string, LessonSectionQuiz[]> = {
           2,
           'strW on heap.',
           [7],
+        ),
+      ],
+    },
+  ]),
+
+  'alg-1-occurrences': checkpoints('alg-1-occurrences', [
+    {
+      title: 'From problem to loop',
+      checkpointStepIndex: 15,
+      questions: [
+        mcq(
+          'sq-alg-1-a',
+          'Right after `int found = haystack.indexOf(needle, from);` with from still 0, found records:',
+          ['The length of needle', 'The first index where needle starts in haystack', 'Always −1', 'The character at from'],
+          1,
+          'indexOf returns the starting index of the first match from that position, or −1 if none.',
+          15,
+          'found primitive 0 for first aba.',
+          [5],
+        ),
+        fill(
+          'sq-alg-1-b',
+          'To allow overlapping matches, after a hit at found you typically advance with from = found + [blank].',
+          'n',
+          ['1'],
+          'Plus one moves the search window by one character; plus needle.length() skips the whole match.',
+          19,
+          'from becomes 1 after first hit.',
+          [7],
+        ),
+      ],
+    },
+    {
+      title: 'Stop condition',
+      checkpointStepIndex: 24,
+      questions: [
+        mcq(
+          'sq-alg-1-c',
+          'When `indexOf` returns −1, the loop condition `found >= 0` is:',
+          ['True — keep looping', 'False — exit the loop', 'Undefined', 'Always true for non-empty strings'],
+          1,
+          'Negative sentinel means no more matches from the current from index.',
+          24,
+          'found = -1 after last search.',
+          [8],
         ),
       ],
     },

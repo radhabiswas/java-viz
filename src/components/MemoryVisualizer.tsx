@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MemoryState } from '../types';
 import { motion } from 'motion/react';
+import { StepDescription } from '../lib/stepDescriptionRichText';
 
 /** Line = legend blue; head = white fill + blue rim (previous look) */
 const REFERENCE_ARROW = {
@@ -134,7 +135,14 @@ function MemorySectionHeader({ title, tag, titleHint }: { title: string; tag: st
   );
 }
 
-export default function MemoryVisualizer({ state }: { state: MemoryState }) {
+export default function MemoryVisualizer({
+  state,
+  caption,
+}: {
+  state: MemoryState;
+  /** Optional context above the diagram (e.g. FRQ snapshot); supports `**bold**` and `` `code` ``. */
+  caption?: string;
+}) {
   /** Scrollport (padding, overflow) */
   const diagramRef = useRef<HTMLDivElement>(null);
   /** Intrinsic row: in-flow columns only — never use scrollWidth for SVG size (causes blank scroll) */
@@ -188,7 +196,7 @@ export default function MemoryVisualizer({ state }: { state: MemoryState }) {
           if (sourceEl && targetCard) {
             const sourceRect = sourceEl.getBoundingClientRect();
             const cardRect = targetCard.getBoundingClientRect();
-            // Exact center of the reference dot (matches legend chip)
+            // Exact center of the reference dot in the stack row
             const sx = relX(sourceRect) + sourceRect.width / 2;
             const sy = relY(sourceRect) + sourceRect.height / 2;
             const nSame = targetArity.get(variable.refId) ?? 1;
@@ -306,34 +314,21 @@ export default function MemoryVisualizer({ state }: { state: MemoryState }) {
   }, [state]);
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-900 [&_.memory-diagram-scroll]:[scrollbar-width:thin]">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-slate-200/80 px-4 py-3.5 dark:border-slate-800">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-900 [&_.memory-diagram-scroll]:[scrollbar-width:thin]">
+      <div className="shrink-0 border-b border-slate-200/80 px-4 py-3 dark:border-slate-800">
         <h3 className="text-xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
           Memory State
         </h3>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-slate-600 dark:text-slate-400">
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <div
-              className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500 shadow-sm ring-2 ring-blue-500/25"
-              aria-hidden
-            />
-            <span className="font-medium">
-              <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">reference</span>{' '}
-              <span className="text-slate-500 dark:text-slate-400">type</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <div
-              className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-500 shadow-sm ring-2 ring-green-500/25"
-              aria-hidden
-            />
-            <span className="font-medium">
-              <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">primitive</span>{' '}
-              <span className="text-slate-500 dark:text-slate-400">type</span>
-            </span>
-          </div>
-        </div>
       </div>
+
+      {caption?.trim() ? (
+        <div className="shrink-0 border-b border-slate-200/80 bg-sky-50/90 px-4 py-2.5 dark:border-slate-800 dark:bg-sky-950/35">
+          <StepDescription
+            text={caption.trim()}
+            className="text-xs leading-snug text-slate-700 dark:text-slate-200 [&_code]:rounded [&_code]:bg-white/80 [&_code]:px-1 [&_code]:text-[11px] dark:[&_code]:bg-slate-800/90 [&_strong]:text-slate-900 dark:[&_strong]:text-white"
+          />
+        </div>
+      ) : null}
 
       {/*
         Columns first (z-10), then SVG (z-18) so arrow markers sit on top of cards.
@@ -341,7 +336,7 @@ export default function MemoryVisualizer({ state }: { state: MemoryState }) {
       */}
       <div
         ref={diagramRef}
-        className="memory-diagram-scroll relative min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-auto overscroll-x-contain px-3 py-3 pb-5 pr-4"
+        className="memory-diagram-scroll relative min-h-[10.5rem] min-w-0 flex-1 overflow-x-auto overflow-y-auto overscroll-x-contain px-3 py-3 pb-5 pr-4"
       >
         <div ref={diagramContentRef} className="relative w-full min-w-0">
           {/*

@@ -5,6 +5,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
+import MobileAppChrome from './components/MobileAppChrome';
 import LessonViewer from './components/LessonViewer';
 import CustomCodeInput from './components/CustomCodeInput';
 import AccountModal from './components/AccountModal';
@@ -61,6 +62,7 @@ export default function App() {
   const [customLessons, setCustomLessons] = useState<Lesson[]>([]);
   const [initialCustomCode, setInitialCustomCode] = useState('');
   const [navSearchOpen, setNavSearchOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [helpScrollTarget, setHelpScrollTarget] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
 
@@ -100,7 +102,33 @@ export default function App() {
 
   const selectLesson = useCallback((id: string) => {
     setActiveLessonId(id);
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches) {
+      setMobileNavOpen(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => {
+      if (mq.matches) setMobileNavOpen(false);
+    };
+    // Safari <14 uses addListener/removeListener on MediaQueryList (addEventListener is undefined).
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    }
+    mq.addListener(onChange);
+    return () => mq.removeListener(onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileNavOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileNavOpen]);
   const activeLessonEndQuizId =
     activeLesson?.finalQuiz?.id ??
     finalQuizzesByLessonId[activeLesson?.id ?? '']?.id ??
@@ -172,7 +200,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-slate-100 font-sans text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-slate-100 font-sans text-slate-900 dark:bg-slate-950 dark:text-slate-50 lg:h-screen lg:min-h-0 lg:flex-row">
       <AccountModal
         open={accountModalOpen}
         onClose={() => setAccountModalOpen(false)}
@@ -187,6 +215,19 @@ export default function App() {
           setActiveLessonId(HELP_LESSON_ID);
           setHelpScrollTarget(sectionId);
         }}
+      />
+      {mobileNavOpen ? (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-950/55 lg:hidden"
+          aria-label="Close lesson menu"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      ) : null}
+      <MobileAppChrome
+        score={score}
+        onOpenNav={() => setMobileNavOpen(true)}
+        onOpenSearch={() => setNavSearchOpen(true)}
       />
       <Sidebar
         activeLessonId={activeLessonId}
@@ -206,8 +247,10 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onDeleteCustomLesson={handleDeleteCustomLesson}
+        mobileNavOpen={mobileNavOpen}
+        onDismissMobileDrawer={() => setMobileNavOpen(false)}
       />
-      <main className="flex-1 h-full min-h-0 overflow-hidden flex flex-col">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden lg:h-full">
         {isCustomView ? (
           <div className="flex-1 min-h-0 h-full overflow-hidden">
             <CustomCodeInput onLessonGenerated={handleLessonGenerated} initialCode={initialCustomCode} />

@@ -6,6 +6,8 @@ import { cn } from '../lib/utils';
 type Props = {
   classHierarchy?: ClassHierarchyEntry[];
   files?: { name: string; code: string }[];
+  /** When there are no multi-file `files`, parse this (e.g. `lesson.code`) for a single-class FRQ. */
+  sourceCodeFallback?: string;
   /** Fill parent (e.g. tab panel) with internal scroll. */
   embedded?: boolean;
 };
@@ -33,8 +35,13 @@ function GeneralizationArrow() {
   );
 }
 
-export default function ClassHierarchyPanel({ classHierarchy, files, embedded = false }: Props) {
-  const rows = buildHierarchyRows(classHierarchy, files);
+export default function ClassHierarchyPanel({
+  classHierarchy,
+  files,
+  sourceCodeFallback,
+  embedded = false,
+}: Props) {
+  const rows = buildHierarchyRows(classHierarchy, files, sourceCodeFallback);
   if (rows.length === 0) return null;
 
   return (

@@ -72,20 +72,20 @@ export default function CustomCodeInput({
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-100 dark:bg-slate-950 p-6 gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest mb-1">
+    <div className="flex h-full flex-col gap-4 bg-slate-100 p-3 dark:bg-slate-950 lg:gap-6 lg:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="mb-1 text-xs font-bold uppercase tracking-widest text-teal-600 dark:text-teal-400">
             Line-by-line
           </h2>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white lg:text-3xl">
             Custom Java Code
           </h1>
         </div>
       </div>
 
       <div
-        className={`flex-1 flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-sm border ${isDragging ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-900/10' : 'border-slate-200 dark:border-slate-800'} overflow-hidden p-6 transition-colors`}
+        className={`flex flex-1 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-colors dark:bg-slate-900 ${isDragging ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-900/10' : 'border-slate-200 dark:border-slate-800'} p-4 lg:p-6`}
         onDragOver={(e) => {
           e.preventDefault();
           setIsDragging(true);

@@ -21,14 +21,17 @@ import {
   GitBranch,
   Layers,
   ListChecks,
+  ListOrdered,
   Lock,
   LogIn,
   LogOut,
   Moon,
+  Route,
   Search,
   Sun,
   Trash2,
   User,
+  X,
   Zap,
 } from 'lucide-react';
 import type { Theme } from '../lib/theme';
@@ -50,6 +53,44 @@ function lessonSidebarLabel(lesson: Lesson): string {
   return lesson.title;
 }
 
+function isAlgorithmicThinkingChapter(chapter: string): boolean {
+  return chapter.includes('Algorithmic Thinking');
+}
+
+function isProblemSolvingChapter(chapter: string): boolean {
+  return chapter.includes('AP CS A Problems');
+}
+
+function problemSolvingLessonsSorted(lessonsInChapter: Lesson[]): Lesson[] {
+  return [...lessonsInChapter].sort((a, b) => {
+    const na = a.problemSolvingNumber ?? 9999;
+    const nb = b.problemSolvingNumber ?? 9999;
+    if (na !== nb) return na - nb;
+    return (a.order ?? 0) - (b.order ?? 0);
+  });
+}
+
+/** Split sorted AP CS A Problems lessons into ungrouped rows vs labeled groups (e.g. by AP exam year). */
+function partitionProblemSolvingByGroup(sorted: Lesson[]): {
+  ungrouped: Lesson[];
+  groups: { label: string; lessons: Lesson[] }[];
+} {
+  const ungrouped: Lesson[] = [];
+  const map = new Map<string, Lesson[]>();
+  for (const l of sorted) {
+    const g = l.problemSolvingGroup?.trim();
+    if (!g) ungrouped.push(l);
+    else {
+      if (!map.has(g)) map.set(g, []);
+      map.get(g)!.push(l);
+    }
+  }
+  const groups = [...map.entries()]
+    .sort(([a], [b]) => b.localeCompare(a, undefined, { numeric: true }))
+    .map(([label, lessons]) => ({ label, lessons }));
+  return { ungrouped, groups };
+}
+
 export default function Sidebar({
   activeLessonId,
   onSelectLesson,
@@ -65,6 +106,8 @@ export default function Sidebar({
   theme,
   onToggleTheme,
   onDeleteCustomLesson,
+  mobileNavOpen = false,
+  onDismissMobileDrawer,
 }: {
   activeLessonId: string;
   onSelectLesson: (id: string) => void;
@@ -80,6 +123,9 @@ export default function Sidebar({
   theme: Theme;
   onToggleTheme: () => void;
   onDeleteCustomLesson: (lessonId: string) => void;
+  /** Below `lg`: drawer visibility (desktop layout ignores this). */
+  mobileNavOpen?: boolean;
+  onDismissMobileDrawer?: () => void;
 }) {
   const sortedLessons = useMemo(
     () => [...lessons].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999)),
@@ -103,8 +149,17 @@ export default function Sidebar({
   }
 
   return (
-    <div className="flex h-full w-80 flex-col border-r border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-      <div className="border-b border-slate-200 px-5 pb-5 pt-5 dark:border-slate-800">
+    <div
+      className={cn(
+        'flex w-[min(20rem,calc(100vw-1rem))] flex-col border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300',
+        'fixed left-0 top-0 z-50 h-screen max-h-screen border-r shadow-2xl transition-transform duration-200 ease-out lg:static lg:z-auto lg:h-full lg:max-h-none lg:shadow-none',
+        'lg:translate-x-0 lg:pointer-events-auto',
+        mobileNavOpen ? 'translate-x-0' : 'max-lg:pointer-events-none max-lg:-translate-x-full',
+      )}
+      role="navigation"
+      aria-label="Lessons and account"
+    >
+      <div className="mobile-chrome-pad-t border-b border-slate-200 px-4 pb-4 pt-4 dark:border-slate-800 sm:px-5 sm:pb-5 sm:pt-5">
         <div className="flex items-center gap-3">
           <div className="rounded-xl bg-teal-600 p-2 text-white shadow-lg shadow-teal-900/30 dark:shadow-teal-900/50">
             <Code2 size={24} />
@@ -115,6 +170,16 @@ export default function Sidebar({
               Code Visualizer
             </p>
           </div>
+          {onDismissMobileDrawer ? (
+            <button
+              type="button"
+              onClick={onDismissMobileDrawer}
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50 lg:hidden dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              aria-label="Close lesson menu"
+            >
+              <X size={20} strokeWidth={2} aria-hidden />
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onToggleTheme}
@@ -294,51 +359,156 @@ export default function Sidebar({
             <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-600">
               More lessons
             </p>
+            <p className="mb-3 px-2 text-[10px] leading-relaxed text-slate-500/95 dark:text-slate-500">
+              <span className="font-semibold text-violet-600 dark:text-violet-400">Algorithmic thinking</span> (design +
+              code) appears first in this block, then{' '}
+              <span className="font-semibold text-slate-600 dark:text-slate-400">AP CS A Problems</span> — compact
+              numbered links to FRQ-style prompts.
+            </p>
           </div>
         )}
 
         {otherChapters.map((chapter, idx) => {
-          const Icon = icons[idx % icons.length];
+          const design = isAlgorithmicThinkingChapter(chapter);
+          const problemSolving = isProblemSolvingChapter(chapter);
+          const Icon = design ? Route : problemSolving ? ListOrdered : icons[idx % icons.length];
           const chapterLessons = otherLessons.filter((l) => l.chapter === chapter);
 
           return (
             <div key={chapter} className="flex flex-col gap-2">
-              <div className="mb-1 flex items-center gap-2 px-2 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">
-                <Icon size={14} />
+              <div
+                className={cn(
+                  'mb-1 flex items-center gap-2 px-2 text-xs font-bold uppercase tracking-wider',
+                  design
+                    ? 'text-violet-700 dark:text-violet-400/95'
+                    : problemSolving
+                      ? 'text-sky-800 dark:text-sky-400/95'
+                      : 'text-slate-600 dark:text-slate-500',
+                )}
+              >
+                <Icon size={14} className={design || problemSolving ? 'opacity-90' : undefined} aria-hidden />
                 {chapter}
               </div>
-              {chapterLessons.map((lesson) => {
-                const lessonDone = isLessonFullyComplete(lesson, completedSectionQuizIds, completedQuizIds);
-                return (
-                  <button
-                    key={lesson.id}
-                    onClick={() => onSelectLesson(lesson.id)}
-                    className={cn(
-                      'group flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200',
-                      activeLessonId === lesson.id
-                        ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/20'
-                        : 'text-slate-600 hover:bg-slate-200/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200',
-                    )}
-                  >
-                    <span className="flex min-w-0 items-center gap-2 pr-4">
-                      {lessonDone ? (
-                        <Check
-                          size={16}
+              {problemSolving ? (() => {
+                const sorted = problemSolvingLessonsSorted(chapterLessons);
+                const globalIndex = new Map(sorted.map((l, i) => [l.id, i]));
+                const { ungrouped, groups } = partitionProblemSolvingByGroup(sorted);
+
+                const renderChipRow = (lessons: Lesson[], listAria: string) => (
+                  <div className="flex flex-wrap gap-1.5" role="list" aria-label={listAria}>
+                    {lessons.map((lesson) => {
+                      const pi = globalIndex.get(lesson.id) ?? 0;
+                      const n = lesson.problemSolvingNumber ?? pi + 1;
+                      const lessonDone = isLessonFullyComplete(lesson, completedSectionQuizIds, completedQuizIds);
+                      const active = activeLessonId === lesson.id;
+                      return (
+                        <button
+                          key={lesson.id}
+                          type="button"
+                          role="listitem"
+                          title={lesson.title}
+                          aria-label={`Problem ${n}: ${lesson.title}`}
+                          aria-current={active ? 'true' : undefined}
+                          onClick={() => onSelectLesson(lesson.id)}
                           className={cn(
-                            'shrink-0',
-                            activeLessonId === lesson.id ? 'text-white' : 'text-teal-600 dark:text-teal-400',
+                            'flex min-h-9 min-w-9 items-center justify-center gap-1 rounded-lg border px-2 text-sm font-extrabold tabular-nums transition-colors',
+                            active
+                              ? 'border-teal-500 bg-teal-600 text-white shadow-md shadow-teal-900/20'
+                              : 'border-slate-200/90 bg-white text-slate-700 hover:border-sky-400/60 hover:bg-sky-50/90 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:border-sky-500/40 dark:hover:bg-sky-950/35',
+                            lessonDone &&
+                              !active &&
+                              'border-teal-300/80 text-teal-800 dark:border-teal-800/60 dark:text-teal-300',
                           )}
-                          aria-hidden
-                        />
-                      ) : null}
-                      <span className="truncate">{lessonSidebarLabel(lesson)}</span>
-                    </span>
-                    {activeLessonId === lesson.id && (
-                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white" />
-                    )}
-                  </button>
+                        >
+                          {lessonDone ? (
+                            <Check
+                              size={14}
+                              strokeWidth={2.5}
+                              className={cn('shrink-0', active ? 'text-white' : 'text-teal-600 dark:text-teal-400')}
+                              aria-hidden
+                            />
+                          ) : null}
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
                 );
-              })}
+
+                return (
+                  <div
+                    className="flex flex-col gap-2 px-1"
+                    role="region"
+                    aria-label="AP CS A problems — numbered problems"
+                  >
+                    {ungrouped.length > 0
+                      ? renderChipRow(ungrouped, 'AP CS A problems — ungrouped')
+                      : null}
+                    {groups.map(({ label, lessons }) => (
+                      <div key={label}>
+                        <p className="mb-1 px-1 text-[10px] font-bold uppercase tracking-wider text-sky-800/90 dark:text-sky-400/85">
+                          {label}
+                        </p>
+                        {renderChipRow(lessons, `AP CS A problems — ${label}`)}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })() : (
+                chapterLessons.map((lesson) => {
+                  const lessonDone = isLessonFullyComplete(lesson, completedSectionQuizIds, completedQuizIds);
+                  return (
+                    <button
+                      key={lesson.id}
+                      onClick={() => onSelectLesson(lesson.id)}
+                      className={cn(
+                        'group flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200',
+                        design &&
+                          activeLessonId !== lesson.id &&
+                          'border border-violet-200/80 bg-violet-50/50 text-slate-700 hover:border-violet-300 hover:bg-violet-50 dark:border-violet-900/40 dark:bg-violet-950/25 dark:text-slate-200 dark:hover:border-violet-700/50 dark:hover:bg-violet-950/40',
+                        activeLessonId === lesson.id
+                          ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/20'
+                          : !design &&
+                              'text-slate-600 hover:bg-slate-200/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200',
+                        design && activeLessonId === lesson.id && 'border border-teal-400/50',
+                      )}
+                    >
+                      <span className="flex min-w-0 flex-col items-start gap-0.5 pr-4 text-left">
+                        <span className="flex min-w-0 items-center gap-2">
+                          {lessonDone ? (
+                            <Check
+                              size={16}
+                              className={cn(
+                                'shrink-0',
+                                activeLessonId === lesson.id ? 'text-white' : 'text-teal-600 dark:text-teal-400',
+                              )}
+                              aria-hidden
+                            />
+                          ) : null}
+                          <span className="min-w-0">
+                            {lesson.algorithmSubsection ? (
+                              <span
+                                className={cn(
+                                  'mb-0.5 block truncate text-[10px] font-bold uppercase tracking-wide',
+                                  activeLessonId === lesson.id
+                                    ? 'text-white/90'
+                                    : 'text-violet-600 dark:text-violet-400',
+                                )}
+                              >
+                                {lesson.algorithmSubsection}
+                              </span>
+                            ) : null}
+                            <span className="block truncate">{lessonSidebarLabel(lesson)}</span>
+                          </span>
+                        </span>
+                      </span>
+                      {activeLessonId === lesson.id && (
+                        <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-white" />
+                      )}
+                    </button>
+                  );
+                })
+              )}
               {chapterHasQuizHub(chapterLessons) ? (
                 <button
                   type="button"
@@ -368,7 +538,7 @@ export default function Sidebar({
         })}
       </div>
 
-      <div className="border-t border-slate-200 p-4 text-center text-[10px] leading-relaxed text-slate-500 dark:border-slate-800 dark:text-slate-500">
+      <div className="border-t border-slate-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] text-center text-[10px] leading-relaxed text-slate-500 dark:border-slate-800 dark:text-slate-500 lg:pb-4">
         <p className="font-medium text-slate-600 dark:text-slate-400">© Radha Biswas</p>
         <p className="mt-0.5">All rights reserved · Neurosymphony.ai</p>
       </div>

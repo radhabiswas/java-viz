@@ -93,9 +93,9 @@ export const HELP_SECTIONS: HelpSection[] = [
     id: 'java-libraries',
     title: 'Libraries (java.util & java.lang)',
     searchBlob:
-      'arraylist list string math integer double random substring equals indexof pow sqrt min max wrapper parseint parsedouble 2d array traversal java.util java.lang library collections',
+      'arraylist list reverse split string array string[] math integer double random substring equals indexof pow sqrt min max wrapper parseint parsedouble 2d row column ragged grid traversal java.util java.lang library collections',
     paragraphs: [
-      'Intro courses often stress **java.lang** and **java.util**: **`ArrayList`**, **`String`**, **`Math`**, **`Integer`** / **`Double`**, the **`List`** interface, and **row-major 2D traversal** (`grid.length`, `grid[r].length`).',
+      'Intro courses often stress **java.lang** and **java.util**: **`ArrayList`**, **`List`**, **`String.split`**, **`Math`**, **`Integer`** / **`Double`**, and **2D arrays** (row sums, column walks, **`grid[r].length`**).',
       'Under **More lessons → 7 · Libraries**, each topic is its **own short lesson** (ArrayList & List, String, Math & wrappers, 2D arrays) so explanations stay focused.',
     ],
     relatedLessons: [
@@ -103,6 +103,47 @@ export const HELP_SECTIONS: HelpSection[] = [
       { id: '6-lib-string', label: 'String methods' },
       { id: '6-lib-math', label: 'Math & wrappers' },
       { id: '6-lib-2d', label: '2D arrays' },
+    ],
+  },
+  {
+    id: 'algorithmic-thinking',
+    title: 'Algorithmic thinking',
+    searchBlob:
+      'algorithmic thinking problem solving design phase examples generalize plan pseudocode substring occurrences indexof overlap haystack needle pattern arrays recursion math simulation',
+    paragraphs: [
+      'These lessons are under **More lessons**, chapter **8 · Algorithmic Thinking** (before **9 · AP CS A Problems**). Each lesson can list a **subsection** — today **String based algorithms**; good candidates as the library grows: **Array based**, **Numeric / math**, **Date & calendar logic**, **Simulation**, **Recursive** patterns.',
+      'A lesson splits into two modes: **Design phase** — stage controls walk through examples, plain-language logic, and the right-hand **Array**, **Recursion**, or other diagram that fits the problem. Then **Implementation** — the usual **chevron** controls step executed **Java** line by line with **memory** (and flow when relevant), like the rest of the curriculum.',
+    ],
+    relatedLessons: [{ id: 'alg-1-occurrences', label: 'String based: all occurrences of a substring' }],
+  },
+  {
+    id: 'ap-cs-a-problems',
+    title: 'AP CS A Problems (FRQ-style)',
+    searchBlob:
+      'ap cs a problems apcsa problem solving frq ap calendar steptracker delimiters lightboard leap year day of week numberOfLeapYears dayOfWeek isLeapYear dayOfYear firstDayOfYear past papers 2025 2024 2023 2022 2021 2018 2017 2016 2015 2014 2013 2012 college board released pdf scoring guidelines sample response',
+    paragraphs: [
+      'Chapter **9 · AP CS A Problems** appears **after** **8 · Algorithmic Thinking** (lesson **order** keeps that sequence). **2025**, **2024**, **2023**, **2022**, **2021**, **2019**, **2018**, **2017**, **2016**, **2015**, **2014**, **2013**, and **2012** have full in-app FRQs (design stages, **Implementation workspace**, **Concepts**, reference Java). Other released years may still use **PDF hub** entries (links only) where those hubs are listed; hubs sort after reserved full-FRQ **order** slots.',
+      '**2019** FRQs use top tabs for the prompt and walkthrough; **Implementation workspace** opens the **editor** with **memory**, **array** (when present), **class hierarchy**, and **Concepts** like other lessons. **Other years** use the workspace to type **your** solution beside the PDFs.',
+      'The sidebar shows **compact numbers** (**1**, **2**, **3**, **4**) under each **year**. Hover or use screen-reader labels for the full title.',
+      '**Link to algorithmic thinking:** prompts are chosen so the **same habits** apply — decompose the task, reuse **helpers**, respect **loop exit** and **bounds**, and use **modular arithmetic** where needed (e.g. weekdays).',
+    ],
+    relatedLessons: [
+      { id: 'ps-2025-1-dog-walker', label: '2025 · 1 · DogWalker' },
+      { id: 'ps-2024-1-feeder', label: '2024 · 1 · Feeder' },
+      { id: 'ps-2014-1-scramble', label: '2014 · 1 · Scramble' },
+      { id: 'ps-2023-1-appointment-book', label: '2023 · 1 · AppointmentBook' },
+      { id: 'ps-2016-1-random-chooser', label: '2016 · 1 · RandomStringChooser' },
+      { id: 'ps-2022-1-game', label: '2022 · 1 · Game / Level' },
+      { id: 'ps-2021-1-word-match', label: '2021 · 1 · WordMatch' },
+      { id: 'ps-2018-1-frog-simulation', label: '2018 · 1 · FrogSimulation' },
+      { id: 'ps-2012-1-climbing-club', label: '2012 · 1 · ClimbingClub' },
+      { id: 'ps-2017-1-digits', label: '2017 · 1 · Digits' },
+      { id: 'ps-2015-1-diverse-array', label: '2015 · 1 · DiverseArray' },
+      { id: 'ps-2013-1-music-downloads', label: '2013 · 1 · MusicDownloads' },
+      { id: 'ps-1-ap-calendar', label: '2019 · 1 · AP Calendar' },
+      { id: 'ps-2-step-tracker', label: '2019 · 2 · StepTracker' },
+      { id: 'ps-3-delimiters', label: '2019 · 3 · Delimiters' },
+      { id: 'ps-4-light-board', label: '2019 · 4 · LightBoard' },
     ],
   },
 ];

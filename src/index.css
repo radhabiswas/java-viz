@@ -3,6 +3,34 @@
 /* Manual day/night toggle: add/remove `dark` on <html> (see src/lib/theme.ts). */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Full-viewport shell: use an explicit height chain (not body-as-flex + flex-1 on #root).
+ * Chrome Android often collapses #root to 0px when #root has min-height:0 + flex:1 inside a
+ * body flex column; Safari still paints. html/body/#root at 100% matches common SPA guidance.
+ */
+html {
+  height: 100%;
+}
+body {
+  margin: 0;
+  height: 100%;
+}
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Mobile / native WebView shells: respect notches and home indicator (desktop unaffected). */
+.mobile-chrome-pad-x {
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+}
+.mobile-chrome-pad-t {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 /* Implicit-this teaching overlay (ImplicitThisJavaBlock + javaLineToTeachingHtml) */
 .java-teach-kw {
   color: #0369a1;

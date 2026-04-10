@@ -29,8 +29,15 @@ export function applyImplicitThisSyntax(code: string, className: string): string
       if (/^\s*(?:public|private|protected)\s+static\b/.test(line)) return line;
 
       const ctorLead = new RegExp(`^(\\s*public\\s+)${cn}(\\s*\\(\\s*)`);
-      if (ctorLead.test(line)) {
-        return line.replace(ctorLead, `$1${className}$2${className} this, `);
+      const ctorMatch = line.match(ctorLead);
+      if (ctorMatch) {
+        const rest = line.slice(ctorMatch[0].length);
+        const trimmed = rest.trimStart();
+        const head = `${ctorMatch[1]}${className}${ctorMatch[2]}${className} this`;
+        if (trimmed.startsWith(')')) {
+          return `${head}${rest}`;
+        }
+        return `${head}, ${rest}`;
       }
 
       return injectReceiverOnInstanceMethod(line, className);

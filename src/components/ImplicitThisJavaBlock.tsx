@@ -11,6 +11,7 @@ type Props = {
   step: Step;
   hasFiles: boolean;
   activeConcept: Concept | null;
+  preferImplementationConceptLines?: boolean;
 };
 
 export default function ImplicitThisJavaBlock({
@@ -20,6 +21,7 @@ export default function ImplicitThisJavaBlock({
   step,
   hasFiles,
   activeConcept,
+  preferImplementationConceptLines = false,
 }: Props) {
   const transformed = applyImplicitThisTeachingTransform(rawCode, javaClassName);
   const lines = transformed.split('\n');
@@ -41,8 +43,12 @@ export default function ImplicitThisJavaBlock({
             if (fileConcept && fileConcept.lines.includes(index)) {
               isConceptLine = true;
             }
-          } else if (!hasFiles && activeConcept.lines?.includes(index)) {
-            isConceptLine = true;
+          } else if (!hasFiles) {
+            const lineSet =
+              preferImplementationConceptLines && activeConcept.implementationLines?.length
+                ? activeConcept.implementationLines
+                : activeConcept.lines;
+            if (lineSet?.includes(index)) isConceptLine = true;
           }
         }
 

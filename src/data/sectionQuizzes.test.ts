@@ -3,7 +3,12 @@ import { lessons } from './lessons';
 import { sectionQuizzesByLessonId } from './sectionQuizzes';
 
 describe('sectionQuizzes data', () => {
-  it.each(lessons.map((l) => l.id))(
+  /** Past-exam PDF hub lessons are practice shells without diagram-stepped quizzes. */
+  const lessonIdsWithSectionQuizzes = lessons
+    .filter((l) => !l.id.startsWith('ps-frq-'))
+    .map((l) => l.id);
+
+  it.each(lessonIdsWithSectionQuizzes)(
     'lesson %s has section quizzes with diagram-linked prompts',
     (lessonId) => {
       const lesson = lessons.find((l) => l.id === lessonId);

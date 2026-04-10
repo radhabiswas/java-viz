@@ -24,6 +24,14 @@ export function lessonUsesControlConstructs(code: string): boolean {
   );
 }
 
+/**
+ * Flow trace is built from consecutive `step.codeLine` values; if every step is intro (`-1`), the panel stays empty.
+ * Hide Flow in that case (e.g. FRQs stepped only through Concepts + memory).
+ */
+export function lessonHasSteppedExecutionTrace(lesson: Lesson): boolean {
+  return lesson.steps.some((s) => s.codeLine >= 0);
+}
+
 function lineSnippet(codeLines: string[], lineIdx: number): string {
   if (lineIdx < 0 || lineIdx >= codeLines.length) return '(intro)';
   const t = codeLines[lineIdx].trim();

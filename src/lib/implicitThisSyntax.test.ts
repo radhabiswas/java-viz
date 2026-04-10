@@ -29,6 +29,21 @@ describe('applyImplicitThisSyntax', () => {
     expect(out).toContain('public int add(Fraction this, int x, int y) {');
     expect(out).toContain('public static void main(String[] args) {');
   });
+
+  it('adds receiver to no-arg constructor without a trailing comma', () => {
+    const src = [
+      'public class Calculator {',
+      '  public Calculator() {',
+      '  }',
+      '  public void add(int amount) {',
+      '  }',
+      '}',
+    ].join('\n');
+    const out = applyImplicitThisSyntax(src, 'Calculator');
+    expect(out).toContain('public Calculator(Calculator this) {');
+    expect(out).not.toMatch(/Calculator this,\s*\)/);
+    expect(out).toContain('public void add(Calculator this, int amount) {');
+  });
 });
 
 describe('applyImplicitThisTeachingTransform', () => {

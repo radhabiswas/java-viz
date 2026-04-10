@@ -28,7 +28,7 @@ export default function ChapterQuizHub({
   const chapterDone = isChapterFullyComplete(lessons, completedSectionQuizIds, completedQuizIds);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-slate-100 p-6 dark:bg-slate-950">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-slate-100 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] dark:bg-slate-950 lg:p-6">
       <div className="mx-auto w-full max-w-2xl">
         <button
           type="button"

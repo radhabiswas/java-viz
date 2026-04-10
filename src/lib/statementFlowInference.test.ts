@@ -5,6 +5,7 @@ import {
   buildFlowDisplayItems,
   compoundAndBreakdownFromStep,
   extractForConditionExpr,
+  lessonHasSteppedExecutionTrace,
   lessonUsesControlConstructs,
   parseConditionOutcomeFromDescription,
 } from './statementFlowInference';
@@ -15,6 +16,28 @@ describe('statementFlowInference', () => {
     expect(lessonUsesControlConstructs('if (x > 0) { x++; }')).toBe(true);
     expect(lessonUsesControlConstructs('while (true) { }')).toBe(true);
     expect(lessonUsesControlConstructs('for (int i = 0; i < 3; i++) { }')).toBe(true);
+  });
+
+  it('lessonHasSteppedExecutionTrace', () => {
+    const introOnly: Lesson = {
+      id: 'x',
+      title: 'T',
+      chapter: 'c',
+      code: 'if (true) {}',
+      steps: [{ id: 's0', codeLine: -1, description: 'i', memory: { stack: [], heap: [], staticArea: [] } }],
+    };
+    const withLine: Lesson = {
+      id: 'y',
+      title: 'T',
+      chapter: 'c',
+      code: 'x',
+      steps: [
+        { id: 's0', codeLine: -1, description: 'i', memory: { stack: [], heap: [], staticArea: [] } },
+        { id: 's1', codeLine: 0, description: 'x', memory: { stack: [], heap: [], staticArea: [] } },
+      ],
+    };
+    expect(lessonHasSteppedExecutionTrace(introOnly)).toBe(false);
+    expect(lessonHasSteppedExecutionTrace(withLine)).toBe(true);
   });
 
   it('buildExecutionTransitions classifies if-else lesson', () => {

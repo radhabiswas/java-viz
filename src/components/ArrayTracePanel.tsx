@@ -276,15 +276,39 @@ function Grid2DTraceView({ trace }: { trace: ArrayTraceView }) {
   );
 }
 
-export default function ArrayTracePanel({ trace }: { trace: ArrayTraceView | undefined }) {
+export default function ArrayTracePanel({
+  trace,
+  compact = false,
+}: {
+  trace: ArrayTraceView | undefined;
+  /** Tighter chrome for design phase when the diagram should use most of the column. */
+  compact?: boolean;
+}) {
   if (!trace || trace.bands.length === 0) {
     return (
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
-          <h3 className="text-lg font-extrabold tracking-tight text-slate-800 dark:text-slate-100">Array view</h3>
+        <div
+          className={cn(
+            'border-b border-slate-200 dark:border-slate-800',
+            compact ? 'px-3 py-2' : 'px-4 py-3',
+          )}
+        >
+          <h3
+            className={cn(
+              'font-extrabold tracking-tight text-slate-800 dark:text-slate-100',
+              compact ? 'text-base' : 'text-lg',
+            )}
+          >
+            Array view
+          </h3>
         </div>
-        <div className="flex flex-1 items-center justify-center px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-          No array diagram for this step yet. Use the lesson controls to move to the next or previous step.
+        <div
+          className={cn(
+            'flex flex-1 items-center justify-center text-center text-slate-500 dark:text-slate-400',
+            compact ? 'px-3 py-4 text-xs' : 'px-4 py-8 text-sm',
+          )}
+        >
+          No array diagram for this step yet — step forward or back.
         </div>
       </div>
     );
@@ -295,23 +319,42 @@ export default function ArrayTracePanel({ trace }: { trace: ArrayTraceView | und
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="shrink-0 border-b border-slate-200 px-4 py-3 dark:border-slate-800">
-        <h3 className="text-lg font-extrabold tracking-tight text-slate-800 dark:text-slate-100">Array view</h3>
+      <div
+        className={cn(
+          'shrink-0 border-b border-slate-200 dark:border-slate-800',
+          compact ? 'px-3 py-2' : 'px-4 py-3',
+        )}
+      >
+        <h3
+          className={cn(
+            'font-extrabold tracking-tight text-slate-800 dark:text-slate-100',
+            compact ? 'text-base' : 'text-lg',
+          )}
+        >
+          Array view
+        </h3>
         {trace.caption ? (
-          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-400">{trace.caption}</p>
+          <p
+            className={cn(
+              'font-medium leading-snug text-slate-600 dark:text-slate-400',
+              compact ? 'mt-0.5 text-[11px]' : 'mt-1 text-xs leading-relaxed',
+            )}
+          >
+            {trace.caption}
+          </p>
         ) : null}
       </div>
-      <div className="min-h-0 flex-1 overflow-auto p-4">
+      <div className={cn('min-h-0 flex-1 overflow-auto', compact ? 'p-3' : 'p-4')}>
         {layout === 'grid2d' ? (
           <Grid2DTraceView trace={trace} />
         ) : (
-        <div className="flex flex-col gap-6">
+        <div className={cn('flex flex-col', compact ? 'gap-4' : 'gap-6')}>
           {trace.bands.map((band) => (
             <div key={band.id}>
               <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 {band.label}
               </p>
-              <div className="flex flex-wrap items-end gap-1 sm:gap-1.5">
+              <div className="flex flex-wrap items-start gap-1 sm:gap-1.5">
                 {band.values.map((val, idx) => {
                   const cellMarkers = markersForCell(band.id, idx, trace.markers);
                   const isSortedPrefix = sortedMax !== null && idx <= sortedMax && band.id === trace.bands[0]?.id;
@@ -353,7 +396,13 @@ export default function ArrayTracePanel({ trace }: { trace: ArrayTraceView | und
           ))}
         </div>
         )}
-        <div className="mt-4 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400" role="note">
+        <div
+          className={cn(
+            'leading-relaxed text-slate-500 dark:text-slate-400',
+            compact ? 'mt-2 text-[10px]' : 'mt-4 text-[11px]',
+          )}
+          role="note"
+        >
           {arrayViewLegend(markerKindsInTrace(trace.markers), layout)}
         </div>
       </div>

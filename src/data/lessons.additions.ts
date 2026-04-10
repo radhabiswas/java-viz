@@ -390,9 +390,40 @@ for (int i = 0; i < 2; i++) {
       },
       {
         id: 's2',
-        codeLine: 9,
+        codeLine: 3,
+        activeFile: 'Main.java',
+        description: 'Call site **`c.setValue(3)`** — argument **3** is copied into the parameter slot in **setValue**.',
+        parameterPassing: {
+          subtitle: 'Main passes receiver c and argument 3.',
+          calleeSignature: 'void setValue(Counter this, int value)',
+          mappings: [
+            {
+              formalType: 'Counter',
+              formalName: 'this',
+              actual: 'c',
+              detail: 'Instance method runs on the object c references.',
+            },
+            {
+              formalType: 'int',
+              formalName: 'value',
+              actual: '3',
+              detail: 'Pass-by-value copy of the literal 3.',
+            },
+          ],
+          footnote: 'Next step opens Counter.java on the assignment inside setValue.',
+        },
+        memory: {
+          stack: [{ id: 'c', name: 'c', type: 'reference', refId: 'ctr1' }],
+          heap: [{ id: 'ctr1', className: 'Counter', fields: [{ name: 'value', value: 5 }] }],
+          staticArea: [],
+        },
+        highlights: [{ line: 3, colorClass: 'bg-teal-500/20', label: 'call' }],
+      },
+      {
+        id: 's3',
+        codeLine: 8,
         activeFile: 'Counter.java',
-        description: 'Inside setValue(3): parameter `value` is 3; `this.value = value` writes 3 into the heap field.',
+        description: 'Inside **setValue**: parameter **`value`** is **3**; **`this.value = value`** writes **3** into the heap field.',
         parameterPassing: {
           subtitle: 'Instance method: hidden this + int parameter.',
           calleeSignature: 'void setValue(Counter this, int value)',
@@ -420,12 +451,16 @@ for (int i = 0; i < 2; i++) {
           heap: [{ id: 'ctr1', className: 'Counter', fields: [{ name: 'value', value: 5 }] }],
           staticArea: [],
         },
+        highlights: [
+          { line: 7, colorClass: 'bg-amber-500/15', label: 'setValue' },
+          { line: 8, colorClass: 'bg-amber-500/25', label: '=' },
+        ],
       },
       {
-        id: 's3',
-        codeLine: 10,
+        id: 's4',
+        codeLine: 9,
         activeFile: 'Counter.java',
-        description: 'After assignment, instance field value is 3.',
+        description: 'Assignment done; **setValue** ends — field on the heap is **3**.',
         parameterPassing: {
           subtitle: 'Same bindings; field updated.',
           calleeSignature: 'void setValue(Counter this, int value)',
@@ -443,12 +478,13 @@ for (int i = 0; i < 2; i++) {
           heap: [{ id: 'ctr1', className: 'Counter', fields: [{ name: 'value', value: 3 }] }],
           staticArea: [],
         },
+        highlights: [{ line: 9, colorClass: 'bg-slate-500/15', label: '}' }],
       },
       {
-        id: 's4',
+        id: 's5',
         codeLine: 4,
         activeFile: 'Main.java',
-        description: 'Call `c.getValue()`: receiver `c` is passed implicitly; return value will be stored in `v`.',
+        description: 'Back in Main: **`c.getValue()`** — receiver **`c`** is passed implicitly; return value will be stored in **`v`**.',
         parameterPassing: {
           subtitle: 'Instance call with no explicit arguments besides the receiver.',
           calleeSignature: 'int getValue(Counter this)',
@@ -472,7 +508,7 @@ for (int i = 0; i < 2; i++) {
         },
       },
       {
-        id: 's5',
+        id: 's6',
         codeLine: 12,
         activeFile: 'Counter.java',
         description:
@@ -502,7 +538,7 @@ for (int i = 0; i < 2; i++) {
         id: 'c-5-3-1',
         name: 'Shadowing',
         description: 'A parameter or local with the same simple name as a field hides the field unless qualified with this.',
-        files: [{ name: 'Counter.java', lines: [4, 7, 8, 9, 11, 12] }],
+        files: [{ name: 'Counter.java', lines: [4, 7, 8, 9, 11, 12] }, { name: 'Main.java', lines: [3] }],
       },
       {
         id: 'c-5-3-2',

@@ -72,9 +72,7 @@ export default function FlowPanel({
           Flow
         </h3>
         <p className="mt-1.5 text-xs font-medium leading-snug text-slate-600 dark:text-slate-400">
-          Value boxes and <span className="font-semibold text-slate-700 dark:text-slate-300">TRUE</span> /{' '}
-          <span className="font-semibold text-slate-700 dark:text-slate-300">FALSE</span> for conditions — no lesson
-          prose here.
+          Fills in as you step: locals, then outcomes at each <span className="font-semibold text-slate-700 dark:text-slate-300">if</span> / loop condition (no duplicate of the step narrative).
         </p>
       </div>
 
@@ -85,7 +83,7 @@ export default function FlowPanel({
           </h4>
           {items.length === 0 ? (
             <p className="mt-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              Use Next — trace appears from the first code line.
+              Press Next until execution reaches a real code line — then decisions and values show up here.
             </p>
           ) : null}
           <ul className={cn('space-y-2.5', items.length > 0 && 'mt-2')}>

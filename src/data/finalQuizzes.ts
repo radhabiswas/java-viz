@@ -9,7 +9,7 @@ export const finalQuizzesByLessonId: Record<string, LessonFinalQuiz> = {
   ...bulkFinalQuizzes,
   'ap-1-1': {
     id: 'final-ap-1-1',
-    title: 'Lesson review · Variables, types & casting',
+    title: 'Variables, types & casting',
     questions: [
       {
         id: 'f-ap11-01',
@@ -244,7 +244,7 @@ System.out.println(Channel);`,
 
   '1-1': {
     id: 'final-1-1',
-    title: 'Lesson review · Primitives vs references',
+    title: 'Primitives vs references',
     questions: [
       {
         id: 'f11-01',
